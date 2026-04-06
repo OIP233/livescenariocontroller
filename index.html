@@ -1,0 +1,2689 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OIP Live Scenario Controller</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;700&display=swap');
+
+:root {
+  --bg:          #1a1e24;
+  --bg2:         #22272f;
+  --bg3:         #2a3040;
+  --panel:       #2e3545;
+  --border:      #3a4558;
+  --border-hi:   #5a7090;
+  --text:        #d8e4ee;
+  --text-dim:    #8aa0b4;
+  --text-bright: #f0f8ff;
+  --green:       #3de87a;
+  --green-dim:   #163828;
+  --amber:       #ffb030;
+  --amber-dim:   #3d2800;
+  --red:         #ff4e40;
+  --red-dim:     #3d1010;
+  --blue:        #4aaef0;
+  --blue-dim:    #102840;
+  --cyan:        #20d8ff;
+  --cyan-dim:    #082838;
+  --mono: 'Share Tech Mono', monospace;
+  --sans: 'Barlow', sans-serif;
+  --cond: 'Barlow Condensed', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { overflow:hidden; }
+body { height:100%; background:var(--bg); color:var(--text); font-family:var(--sans); font-size:14px; }
+
+/* ── TOPBAR ─────────────────────────────────────── */
+#topbar {
+  height: 50px;
+  background: var(--bg2);
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.logo { font-family:var(--cond); font-size:20px; font-weight:700; color:var(--cyan); letter-spacing:3px; text-transform:uppercase; white-space:nowrap; }
+.logo em { color:var(--text-dim); font-style:normal; font-weight:500; }
+.top-sep { width:1px; height:22px; background:var(--border); flex-shrink:0; }
+#top-org { font-family:var(--mono); font-size:12px; color:var(--text-dim); flex:1; }
+#top-sc  { font-family:var(--cond); font-size:15px; color:var(--text); font-weight:600; }
+.top-badge { font-family:var(--mono); font-size:10px; padding:3px 10px; border-radius:2px; letter-spacing:1px; text-transform:uppercase; font-weight:600; flex-shrink:0; }
+.b-unsaved { background:var(--amber-dim); color:var(--amber); border:1px solid var(--amber); }
+.b-saved   { background:var(--green-dim); color:var(--green); border:1px solid var(--green); }
+.b-new     { background:var(--bg3); color:var(--text-dim); border:1px solid var(--border-hi); }
+
+/* ── LAYOUT ─────────────────────────────────────── */
+#shell { display:flex; height:calc(100vh - 50px); overflow:hidden; }
+
+/* ── SIDEBAR ────────────────────────────────────── */
+#sidebar {
+  width: 66px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.tab-btn {
+  width:50px; height:50px;
+  border-radius:8px; border:none;
+  background:transparent; cursor:pointer;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:3px; transition:all .15s;
+}
+.tab-btn:hover  { background:var(--bg3); }
+.tab-btn.active { background:var(--cyan-dim); }
+.tab-btn.active .ti { color:var(--cyan); }
+.tab-btn.active .tl { color:var(--cyan); }
+.ti { font-size:19px; color:var(--text-dim); line-height:1; }
+.tl { font-family:var(--cond); font-size:8px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-dim); }
+.sb-div { width:38px; height:1px; background:var(--border); margin:4px 0; }
+
+/* ── CONTENT ────────────────────────────────────── */
+#content { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+.panel { display:none; flex-direction:column; height:100%; overflow:hidden; }
+.panel.active { display:flex; }
+
+.ph { padding:14px 22px 12px; border-bottom:1px solid var(--border); background:var(--bg2); flex-shrink:0; }
+.ph h2 { font-family:var(--cond); font-size:18px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-bright); margin-bottom:2px; }
+.ph p  { font-size:13px; color:var(--text-dim); }
+
+.pb { flex:1; overflow-y:auto; padding:20px 22px; }
+.pb::-webkit-scrollbar { width:4px; }
+.pb::-webkit-scrollbar-thumb { background:var(--border-hi); }
+
+/* ── FORM ───────────────────────────────────────── */
+.fs { margin-bottom:28px; }
+.fst {
+  font-family:var(--cond); font-size:12px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase; color:var(--cyan);
+  margin-bottom:12px; padding-bottom:6px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:8px;
+}
+.fr  { display:grid; gap:14px; margin-bottom:14px; }
+.fr1 { grid-template-columns:1fr; }
+.fr2 { grid-template-columns:1fr 1fr; }
+.fr3 { grid-template-columns:1fr 1fr 1fr; }
+
+.fd { display:flex; flex-direction:column; gap:5px; }
+.fd label { font-family:var(--mono); font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+.fd input, .fd textarea, .fd select {
+  background:var(--bg3); border:1px solid var(--border-hi); border-radius:4px;
+  padding:9px 12px; color:var(--text-bright); font-family:var(--sans);
+  font-size:14px; outline:none; transition:border-color .2s; width:100%;
+}
+.fd input:focus, .fd textarea:focus, .fd select:focus { border-color:var(--cyan); }
+.fd textarea { resize:vertical; min-height:80px; line-height:1.6; }
+.fd select option { background:var(--bg3); }
+.fd input::placeholder, .fd textarea::placeholder { color:var(--text-dim); opacity:.7; }
+
+.sw { display:flex; align-items:center; gap:12px; }
+.sw input[type=range] { flex:1; background:transparent; border:none; padding:0; accent-color:var(--cyan); }
+.sv { font-family:var(--mono); font-size:13px; color:var(--cyan); min-width:24px; text-align:right; }
+
+/* Toggle */
+.tr {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 12px; background:var(--bg3); border-radius:6px;
+  margin-bottom:8px; border:1px solid var(--border);
+}
+.trl  { font-size:14px; color:var(--text); }
+.trs  { font-size:12px; color:var(--text-dim); margin-top:2px; }
+.tgl  { width:40px; height:22px; background:var(--border-hi); border-radius:11px; position:relative; cursor:pointer; transition:background .2s; flex-shrink:0; border:none; }
+.tgl.on { background:var(--cyan); }
+.tgl::after { content:''; position:absolute; top:3px; left:3px; width:16px; height:16px; background:#fff; border-radius:50%; transition:transform .2s; }
+.tgl.on::after { transform:translateX(18px); }
+
+/* Tags */
+.tg-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.tg {
+  padding:3px 10px; border-radius:12px; font-family:var(--mono); font-size:11px;
+  display:flex; align-items:center; gap:5px; cursor:default;
+}
+.tg.normal   { background:rgba(61,232,122,.12); color:#70e898; border:1px solid rgba(61,232,122,.3); }
+.tg.warning  { background:rgba(255,176,48,.12);  color:#ffc860; border:1px solid rgba(255,176,48,.3); }
+.tg.critical { background:rgba(255,78,64,.12);   color:#ff9080; border:1px solid rgba(255,78,64,.3); }
+.tg-x { cursor:pointer; opacity:.6; font-size:13px; }
+.tg-x:hover  { opacity:1; color:var(--red); }
+
+/* ── BIBLIOTHEEK ─────────────────────────────────── */
+#lib-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:4px; }
+.lc {
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:8px; padding:16px 18px; cursor:pointer;
+  transition:all .15s; position:relative;
+}
+.lc:hover   { border-color:var(--border-hi); background:var(--panel); }
+.lc.active  { border-color:var(--cyan); background:var(--cyan-dim); }
+.lc-title   { font-family:var(--cond); font-size:16px; font-weight:700; color:var(--text-bright); margin-bottom:4px; }
+.lc-org     { font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:10px; }
+.lc-meta    { display:flex; gap:8px; flex-wrap:wrap; }
+.lc-pill    { font-family:var(--mono); font-size:10px; padding:2px 8px; border-radius:10px; background:var(--bg2); color:var(--text-dim); border:1px solid var(--border); }
+.lc-acts    { position:absolute; top:10px; right:12px; display:flex; gap:6px; opacity:0; transition:opacity .15s; }
+.lc:hover .lc-acts { opacity:1; }
+.la { width:26px; height:26px; border-radius:4px; border:1px solid var(--border-hi); background:var(--bg2); color:var(--text-dim); cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; transition:all .1s; }
+.la:hover { background:var(--bg3); color:var(--text-bright); }
+.la.del:hover { border-color:var(--red); color:var(--red); }
+.new-btn {
+  background:transparent; border:2px dashed var(--border-hi); border-radius:8px;
+  padding:16px 18px; cursor:pointer; transition:all .15s;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  color:var(--text-dim); font-family:var(--cond); font-size:14px;
+  font-weight:700; letter-spacing:1px; text-transform:uppercase; min-height:90px;
+}
+.new-btn:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+
+/* ── CAMERA CARDS ────────────────────────────────── */
+.cc { background:var(--bg3); border:1px solid var(--border); border-radius:8px; margin-bottom:12px; overflow:hidden; }
+.cc-hdr {
+  padding:12px 16px; background:var(--panel);
+  display:flex; align-items:center; gap:12px;
+  cursor:pointer; user-select:none;
+}
+.cc-hdr:hover { background:var(--bg3); }
+.cc-id { font-family:var(--mono); font-size:11px; padding:2px 8px; border-radius:3px; background:var(--bg2); color:var(--cyan); border:1px solid var(--border-hi); flex-shrink:0; }
+.cc-name { font-size:15px; font-weight:600; color:var(--text-bright); flex:1; }
+.cc-crit { font-family:var(--mono); font-size:10px; padding:2px 8px; border-radius:10px; background:rgba(255,78,64,.12); color:var(--red); border:1px solid rgba(255,78,64,.3); }
+.cc-chev { color:var(--text-dim); font-size:14px; transition:transform .2s; }
+.cc-chev.open { transform:rotate(90deg); }
+.cc-body { padding:16px; display:none; border-top:1px solid var(--border); }
+.cc-body.open { display:block; }
+.esc-blk { margin-top:14px; padding:12px 14px; background:var(--bg2); border:1px solid var(--border); border-left:3px solid var(--amber); border-radius:0 6px 6px 0; }
+.esc-lbl { font-family:var(--mono); font-size:10px; color:var(--amber); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+
+/* Fase kaarten */
+.phase-card {
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:6px; margin-bottom:10px; overflow:hidden;
+  transition:border-color .2s;
+}
+.phase-card.has-dir { border-left:3px solid var(--cyan); }
+.phase-hdr {
+  display:flex; align-items:center; gap:10px; padding:10px 12px;
+}
+.pnum { font-family:var(--mono); font-size:11px; color:var(--text-dim); width:24px; flex-shrink:0; text-align:center; }
+.pinput {
+  flex:1; background:var(--bg2); border:1px solid var(--border-hi);
+  border-radius:4px; padding:7px 10px; color:var(--text-bright);
+  font-size:13px; outline:none;
+}
+.pinput:focus { border-color:var(--cyan); }
+.pdur {
+  width:90px; flex-shrink:0; background:var(--bg2);
+  border:1px solid var(--border-hi); border-radius:4px;
+  padding:7px 10px; color:var(--cyan); font-size:13px;
+  outline:none; text-align:center; font-family:var(--mono);
+}
+.pdur:focus { border-color:var(--cyan); }
+/* Regieinstructie toggle-knop */
+.pdir-btn {
+  flex-shrink:0; background:transparent; border:1px solid var(--border-hi);
+  border-radius:4px; padding:5px 10px; color:var(--text-dim);
+  font-family:var(--mono); font-size:10px; cursor:pointer;
+  transition:all .15s; letter-spacing:.5px; white-space:nowrap;
+}
+.pdir-btn:hover  { border-color:var(--cyan); color:var(--cyan); }
+.pdir-btn.active { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+/* Regieinstructie uitklapveld */
+.phase-dir-wrap {
+  display:none; padding:0 12px 12px; border-top:1px solid var(--border);
+}
+.phase-dir-wrap.open { display:block; }
+.phase-dir-lbl {
+  font-family:var(--mono); font-size:10px; color:var(--cyan);
+  text-transform:uppercase; letter-spacing:1.5px;
+  margin:10px 0 6px; display:flex; align-items:center; gap:8px;
+}
+.phase-dir-lbl::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+.phase-dir-hint {
+  font-size:12px; color:var(--text-dim); margin-bottom:8px; line-height:1.5;
+}
+.pdir-ta {
+  width:100%; background:var(--bg2); border:1px solid var(--border-hi);
+  border-radius:4px; padding:9px 12px; color:var(--text-bright);
+  font-family:var(--sans); font-size:13px; line-height:1.65;
+  outline:none; resize:vertical; min-height:80px;
+}
+.pdir-ta:focus { border-color:var(--cyan); }
+.pdir-ta::placeholder { color:var(--text-dim); }
+
+/* ── INSTRUCTEUR (vaste systeemrol) ──────────────── */
+.instructor-card {
+  background: var(--bg2);
+  border: 1px solid var(--cyan);
+  border-left: 4px solid var(--cyan);
+  border-radius: 6px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.instructor-hdr {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  background: rgba(32,216,255,.06);
+}
+.instructor-sys-badge {
+  font-family: var(--mono); font-size: 10px;
+  background: var(--cyan-dim); color: var(--cyan);
+  border: 1px solid var(--cyan); border-radius: 3px;
+  padding: 3px 9px; letter-spacing: 1px;
+  text-transform: uppercase; flex-shrink: 0;
+}
+.instructor-name {
+  font-family: var(--cond); font-size: 17px; font-weight: 700;
+  color: var(--cyan); letter-spacing: 1px; flex: 1;
+}
+.instructor-desc {
+  font-size: 12px; color: var(--text-dim); line-height: 1.5;
+  padding: 0 16px 10px;
+  background: rgba(32,216,255,.04);
+  border-bottom: 1px solid var(--border);
+}
+.instructor-body { padding: 14px 16px; }
+.instructor-body .fd label { color: var(--cyan); }
+.instructor-body textarea {
+  width: 100%; background: var(--bg3);
+  border: 1px solid rgba(32,216,255,.3); border-radius: 4px;
+  padding: 9px 12px; color: var(--text-bright);
+  font-family: var(--sans); font-size: 13px; line-height: 1.65;
+  outline: none; resize: vertical; min-height: 80px;
+}
+.instructor-body textarea:focus { border-color: var(--cyan); }
+.instructor-body textarea::placeholder { color: var(--text-dim); }
+
+/* ── ROL KAARTJES ────────────────────────────────── */
+.role-card {
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:6px; margin-bottom:10px; overflow:hidden;
+  transition:border-color .2s;
+}
+.role-card.has-behavior { border-left:3px solid var(--amber); }
+.role-card.is-primary   { border-left:3px solid var(--cyan); }
+.role-card.has-behavior.is-primary { border-left:3px solid var(--cyan); }
+
+/* Primaire-rol knop — radio-achtig: slechts één tegelijk actief */
+.rprim-btn {
+  flex-shrink:0; background:transparent;
+  border:1px solid var(--border-hi);
+  border-radius:4px; padding:5px 10px; color:var(--text-dim);
+  font-family:var(--mono); font-size:10px; cursor:pointer;
+  transition:all .15s; letter-spacing:.5px; white-space:nowrap;
+  display:flex; align-items:center; gap:5px;
+}
+.rprim-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+.rprim-btn.active {
+  border-color:var(--cyan); color:var(--cyan);
+  background:var(--cyan-dim);
+}
+.rprim-dot {
+  width:7px; height:7px; border-radius:50%;
+  border:1.5px solid currentColor; flex-shrink:0; transition:all .15s;
+}
+.rprim-btn.active .rprim-dot {
+  background:var(--cyan); border-color:var(--cyan);
+  box-shadow:0 0 5px var(--cyan);
+}
+.role-hdr {
+  display:flex; align-items:center; gap:10px; padding:10px 12px;
+}
+.role-badge {
+  font-family:var(--mono); font-size:11px; padding:3px 9px;
+  border-radius:3px; border:1px solid; flex-shrink:0;
+  text-transform:uppercase; letter-spacing:.5px;
+}
+.role-badge.type-dispatch { background:rgba(32,216,255,.1); color:var(--cyan);  border-color:rgba(32,216,255,.3); }
+.role-badge.type-field    { background:rgba(61,232,122,.1); color:var(--green); border-color:rgba(61,232,122,.3); }
+.role-badge.type-shift    { background:rgba(255,176,48,.1); color:var(--amber); border-color:rgba(255,176,48,.3); }
+.role-badge.type-tech     { background:rgba(74,174,240,.1); color:var(--blue);  border-color:rgba(74,174,240,.3); }
+.role-badge.type-external { background:rgba(200,180,255,.1);color:#c0a0ff;     border-color:rgba(200,180,255,.3); }
+.role-badge.type-custom   { background:rgba(255,255,255,.06);color:var(--text-dim);border-color:var(--border-hi); }
+.role-name-input {
+  flex:1; background:var(--bg2); border:1px solid var(--border-hi);
+  border-radius:4px; padding:7px 10px; color:var(--text-bright);
+  font-size:14px; font-weight:600; outline:none; font-family:var(--sans);
+  text-transform:uppercase; letter-spacing:.5px;
+}
+.role-name-input:focus { border-color:var(--cyan); }
+.role-type-select {
+  background:var(--bg2); border:1px solid var(--border-hi);
+  border-radius:4px; padding:7px 10px; color:var(--text);
+  font-size:13px; outline:none; cursor:pointer; flex-shrink:0;
+  font-family:var(--sans);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a7090'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 8px center; padding-right:26px;
+  appearance:none;
+}
+.role-type-select:focus { border-color:var(--cyan); }
+.role-type-select option { background:var(--bg3); }
+.rbhv-btn {
+  flex-shrink:0; background:transparent; border:1px solid var(--border-hi);
+  border-radius:4px; padding:5px 10px; color:var(--text-dim);
+  font-family:var(--mono); font-size:10px; cursor:pointer;
+  transition:all .15s; letter-spacing:.5px; white-space:nowrap;
+}
+.rbhv-btn:hover  { border-color:var(--amber); color:var(--amber); }
+.rbhv-btn.active { border-color:var(--amber); color:var(--amber); background:rgba(255,176,48,.08); }
+.role-bhv-wrap {
+  display:none; padding:0 12px 12px; border-top:1px solid var(--border);
+}
+.role-bhv-wrap.open { display:block; }
+.role-bhv-lbl {
+  font-family:var(--mono); font-size:10px; color:var(--amber);
+  text-transform:uppercase; letter-spacing:1.5px;
+  margin:10px 0 6px; display:flex; align-items:center; gap:8px;
+}
+.role-bhv-lbl::after { content:''; flex:1; height:1px; background:var(--border); }
+.role-bhv-hint { font-size:12px; color:var(--text-dim); margin-bottom:8px; line-height:1.5; }
+.rbhv-ta {
+  width:100%; background:var(--bg2); border:1px solid var(--border-hi);
+  border-radius:4px; padding:9px 12px; color:var(--text-bright);
+  font-family:var(--sans); font-size:13px; line-height:1.65;
+  outline:none; resize:vertical; min-height:70px;
+}
+.rbhv-ta:focus { border-color:var(--amber); }
+.rbhv-ta::placeholder { color:var(--text-dim); }
+.hint-text { font-size:13px; color:var(--text-dim); line-height:1.55; }
+
+/* ── BEDRIJFSPROFIEL ─────────────────────────────── */
+.profile-saved-bar {
+  display:flex; align-items:center; gap:10px;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:6px; padding:10px 14px; margin-bottom:16px;
+}
+.profile-saved-name {
+  font-family:var(--mono); font-size:12px; color:var(--cyan); font-weight:700; flex:1;
+}
+.profile-saved-meta { font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+.profile-tag {
+  display:inline-block; font-family:var(--mono); font-size:10px;
+  padding:2px 8px; border-radius:10px; margin:2px 3px 2px 0;
+  background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-dim);
+}
+.profile-tag.brzo { border-color:var(--red); color:var(--red); }
+.profile-tag.seveso { border-color:var(--amber); color:var(--amber); }
+#profile-link-row { background:var(--bg2); border:1px solid var(--border); border-radius:6px; padding:12px 14px; margin-bottom:16px; }
+#f-scenario-profile { width:100%; background:var(--bg3); border:1px solid var(--border-hi); color:var(--text); border-radius:4px; padding:7px 10px; font-family:var(--mono); font-size:12px; cursor:pointer; }
+#f-scenario-profile:focus { outline:none; border-color:var(--cyan); }
+.profile-preview { margin-top:10px; font-family:var(--mono); font-size:11px; color:var(--text-dim); line-height:1.7; padding:8px 10px; background:var(--bg); border-radius:4px; border:1px solid var(--border); display:none; }
+
+/* ── KNOPPEN ─────────────────────────────────────── */
+.btn {
+  padding:9px 18px; border-radius:4px; font-family:var(--cond);
+  font-size:14px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  cursor:pointer; transition:all .15s; border:1px solid;
+  display:inline-flex; align-items:center; gap:7px;
+}
+.btn-p { background:var(--blue-dim); border-color:var(--blue); color:#90c8f8; }
+.btn-p:hover { background:var(--blue); color:#fff; }
+.btn-s { background:var(--green-dim); border-color:var(--green); color:var(--green); }
+.btn-s:hover { background:var(--green); color:#000; }
+.btn-d { background:var(--red-dim); border-color:var(--red); color:var(--red); }
+.btn-d:hover { background:var(--red); color:#fff; }
+.btn-g { background:transparent; border-color:var(--border-hi); color:var(--text-dim); }
+.btn-g:hover { background:var(--bg3); color:var(--text); }
+.btn-sm { padding:6px 12px; font-size:12px; }
+.btn-full { width:100%; justify-content:center; }
+.btn-row { display:flex; gap:10px; flex-wrap:wrap; }
+
+/* ── EXPORT ─────────────────────────────────────── */
+#json-pre {
+  background:var(--bg2); border:1px solid var(--border); border-radius:6px;
+  padding:16px; font-family:var(--mono); font-size:12px; line-height:1.7;
+  color:#9ecbff; overflow:auto; max-height:380px; white-space:pre;
+}
+#json-pre::-webkit-scrollbar { width:4px; height:4px; }
+#json-pre::-webkit-scrollbar-thumb { background:var(--border-hi); }
+.exp-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:20px; }
+.exp-card { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:12px 14px; }
+.exp-card .ev { font-family:var(--mono); font-size:20px; color:var(--cyan); font-weight:700; }
+.exp-card .el { font-size:11px; color:var(--text-dim); margin-top:2px; }
+.val-item { font-size:13px; padding:5px 10px; margin-bottom:4px; border-radius:0 3px 3px 0; }
+.val-ok  { color:#70e898; border-left:3px solid var(--green); background:rgba(61,232,122,.08); }
+.val-err { color:#ff9080; border-left:3px solid var(--red);   background:rgba(255,78,64,.08);  }
+.val-wrn { color:#ffc860; border-left:3px solid var(--amber); background:rgba(255,176,48,.08); }
+
+/* ── EMPTY STATE ─────────────────────────────────── */
+.empty { text-align:center; padding:60px 20px; color:var(--text-dim); }
+.empty .ei { font-size:40px; margin-bottom:12px; opacity:.4; }
+.empty p   { font-size:14px; line-height:1.6; }
+.empty strong { color:var(--text); }
+
+/* ── TOAST ───────────────────────────────────────── */
+#toast {
+  position:fixed; bottom:24px; left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--panel); border:1px solid var(--border-hi);
+  border-radius:6px; padding:10px 20px;
+  font-family:var(--mono); font-size:13px; color:var(--text-bright);
+  opacity:0; transition:all .25s ease; pointer-events:none; z-index:100;
+}
+#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+#toast.ok  { border-color:var(--green); color:var(--green); }
+#toast.err { border-color:var(--red);   color:var(--red); }
+
+/* ── CONFIRM ─────────────────────────────────────── */
+#conf-ov { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; align-items:center; justify-content:center; }
+#conf-ov.on { display:flex; }
+#conf-box { background:var(--bg2); border:1px solid var(--border-hi); border-top:2px solid var(--red); border-radius:8px; padding:24px 28px; max-width:380px; width:100%; }
+#conf-box h3 { font-family:var(--cond); font-size:16px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--red); margin-bottom:10px; }
+#conf-box p  { font-size:14px; color:var(--text); line-height:1.6; margin-bottom:18px; }
+
+/* ── TAALKEUZE OVERLAY ───────────────────────────── */
+#lang-overlay {
+  position:fixed; inset:0; background:var(--bg);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:32px; z-index:9999;
+}
+#lang-overlay .lang-logo {
+  font-family:var(--cond); font-size:28px; font-weight:700;
+  color:var(--cyan); letter-spacing:4px; text-transform:uppercase;
+}
+#lang-overlay .lang-logo em {
+  color:var(--text-dim); font-style:normal; font-weight:500;
+}
+#lang-overlay .lang-sub {
+  font-family:var(--mono); font-size:12px; color:var(--text-dim);
+  letter-spacing:2px; text-transform:uppercase; margin-top:-20px;
+}
+.lang-btns { display:flex; gap:16px; }
+.lang-btn {
+  padding:18px 40px; border-radius:6px;
+  font-family:var(--cond); font-size:20px; font-weight:700;
+  letter-spacing:3px; text-transform:uppercase;
+  cursor:pointer; transition:all .2s; border:2px solid var(--border-hi);
+  background:var(--bg2); color:var(--text);
+}
+.lang-btn:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+.lang-flag { font-size:28px; display:block; margin-bottom:6px; text-align:center; }
+
+/* Taalknop in topbar */
+#lang-switch {
+  font-family:var(--mono); font-size:11px;
+  background:transparent; border:1px solid var(--border-hi);
+  color:var(--text-dim); padding:4px 10px; border-radius:3px;
+  cursor:pointer; transition:all .15s; letter-spacing:1px;
+  flex-shrink:0;
+}
+#lang-switch:hover { border-color:var(--cyan); color:var(--cyan); }
+</style>
+</head>
+<body>
+
+<!-- TAALKEUZE OVERLAY -->
+<div id="lang-overlay">
+  <div class="lang-logo">OIP <em>·</em> Live Scenario Controller</div>
+  <div class="lang-sub">Select language · Kies taal</div>
+  <div class="lang-btns">
+    <button class="lang-btn" onclick="initLang('nl')">
+      <span class="lang-flag">🇳🇱</span>Nederlands
+    </button>
+    <button class="lang-btn" onclick="initLang('en')">
+      <span class="lang-flag">🇬🇧</span>English
+    </button>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="logo">OIP <em>·</em> Live Scenario Controller</div>
+  <div class="top-sep"></div>
+  <div id="top-org">Geen organisatie</div>
+  <div class="top-sep"></div>
+  <div id="top-sc">Geen scenario geladen</div>
+  <div id="top-badge" class="top-badge b-new">NIEUW</div>
+  <button id="lang-switch" onclick="showLangOverlay()">NL</button>
+</div>
+
+<div id="shell">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <button class="tab-btn active" onclick="showTab('library')" data-tab="library" title="Bibliotheek">
+      <div class="ti">⊞</div><div class="tl">Lib</div>
+    </button>
+    <button class="tab-btn" onclick="showTab('scenario')" data-tab="scenario" title="Scenario">
+      <div class="ti">◈</div><div class="tl">Scenario</div>
+    </button>
+    <button class="tab-btn" onclick="showTab('company')" data-tab="company" title="Bedrijfsprofiel">
+      <div class="ti">⬡</div><div class="tl">Bedrijf</div>
+    </button>
+    <button class="tab-btn" onclick="showTab('participant')" data-tab="participant" title="Deelnemer">
+      <div class="ti">◎</div><div class="tl">Deeln.</div>
+    </button>
+    <div class="sb-div"></div>
+    <button class="tab-btn" onclick="showTab('export')" data-tab="export" title="Exporteren">
+      <div class="ti">↓</div><div class="tl">Export</div>
+    </button>
+  </div>
+
+  <div id="content">
+
+    <!-- BIBLIOTHEEK -->
+    <div class="panel active" id="panel-library">
+      <div class="ph"><h2>Scenario-bibliotheek</h2><p>Maak scenario's aan, laad of dupliceer voor hergebruik. Opgeslagen in deze browser.</p></div>
+      <div class="pb">
+        <div class="btn-row" style="margin-bottom:20px">
+          <button class="btn btn-p" onclick="newScenario()">＋ Nieuw scenario</button>
+          <button class="btn btn-g" onclick="importJSON()">↑ JSON importeren</button>
+        </div>
+        <div id="lib-grid"></div>
+      </div>
+    </div>
+
+    <!-- SCENARIO -->
+    <div class="panel" id="panel-scenario">
+      <div class="ph"><h2>Scenario-definitie</h2><p>Verhaal, fasen en AI-gedrag voor dit scenario.</p></div>
+      <div class="pb">
+
+        <!-- Bedrijfsprofiel koppeling -->
+        <div id="profile-link-row">
+          <label style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px">Gekoppeld bedrijfsprofiel</label>
+          <select id="f-scenario-profile" onchange="onProfileSelect()"></select>
+          <div id="profile-preview" class="profile-preview"></div>
+        </div>
+
+        <div class="fs">
+          <div class="fst" data-i18n="sc.general">Algemeen</div>
+          <div class="fr fr2">
+            <div class="fd"><label>Scenario-titel</label><input id="f-title" placeholder="bijv. Biodiesel inslag T-204" oninput="dirty()"/></div>
+            <div class="fd"><label>Organisatie / Terminal</label><input id="f-org" placeholder="bijv. Terminal Noord BV" oninput="dirty()"/></div>
+          </div>
+          <div class="fr fr1">
+            <div class="fd"><label>Beschrijving (voor trainer)</label><textarea id="f-desc" placeholder="Korte omschrijving en leerdoel..." oninput="dirty()"></textarea></div>
+          </div>
+          <div class="fr fr1">
+            <div class="fd"><label>Storyline module-ID</label><input id="f-slid" placeholder="bijv. terminal-noord" oninput="dirty()"/></div>
+          </div>
+          <div class="fr fr1">
+            <div class="fd">
+              <label>Beginsituatie (zichtbaar in AI-module bij start)</label>
+              <input id="f-sit" placeholder="bijv. T-204 · Biodiesel inslag MS Rosita · Pomp P-12 · Debiet 380 m³/h · Niveau 67% ↑" oninput="dirty()"/>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Korte statuszin die onderaan het alarmpaneel verschijnt als beginsituatie voor de deelnemer.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fs">
+          <div class="fst" data-i18n="api.title" style="display:flex;align-items:center;gap:10px">
+            API-configuratie
+            <span style="font-family:var(--mono);font-size:10px;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber);padding:2px 8px;border-radius:3px;letter-spacing:.5px">VERTROUWELIJK</span>
+          </div>
+          <div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;line-height:1.6;padding:10px 12px;background:rgba(255,176,48,.06);border-left:3px solid var(--amber);border-radius:0 4px 4px 0;">
+            De API-sleutel wordt opgeslagen in de geëxporteerde JSON en automatisch ingelezen door de AI-module.
+          </div>
+          <div class="fr fr1">
+            <div class="fd">
+              <label>Anthropic API-sleutel</label>
+              <input type="password" id="f-apikey" placeholder="sk-ant-api03-..."
+                oninput="dirty()" autocomplete="off"
+                style="font-family:var(--mono);letter-spacing:1px"/>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:4px">
+                Laat leeg als de deelnemer de sleutel zelf invoert bij het starten. Vul in om het startscherm voor de deelnemer te vereenvoudigen.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fs">
+          <div class="fst" data-i18n="ph.title">Scenario-fasen <button class="btn btn-g btn-sm" id="btn-add-phase" onclick="addPhase()" style="margin-left:auto">＋</button></div>
+          <div id="phases-list"></div>
+        </div>
+
+        <div class="fs">
+          <div class="fst" data-i18n="ai.title">AI-gedrag</div>
+        <div class="fs">
+          <div class="fst" data-i18n="ai.roles_title">AI-rollen</div>
+
+          <!-- ── VASTE SYSTEEMROL: INSTRUCTEUR ── -->
+          <div class="instructor-card">
+            <div class="instructor-hdr">
+              <span class="instructor-sys-badge" data-i18n="instructor.badge">Systeemrol</span>
+              <span class="instructor-name" data-i18n="instructor.name">INSTRUCTEUR</span>
+              <span data-i18n="instructor.tag" style="font-family:var(--mono);font-size:11px;color:var(--cyan);opacity:.7">Primaire gespreksrol · Altijd aanwezig</span>
+            </div>
+            <div class="instructor-desc" data-i18n="instructor.desc">
+              De Instructeur staat buiten het operationele scenario. Hij bewaakt de voortgang, helpt bij vastlopen, geeft hints bij lage moeilijkheidsgraad en leidt het scenario naar de debriefing. Operationele rollen hieronder spelen het verhaal — de Instructeur begeleidt de training.
+            </div>
+            <div class="instructor-body">
+              <div class="fd">
+                <label>Gedragsinstructie Instructeur (optioneel)</label>
+                <textarea id="instructor-behavior" rows="3"
+                  placeholder="Beschrijf de toon en aanpak van de Instructeur.&#10;&#10;Voorbeeld:&#10;Neutraal en professioneel. Spreekt de deelnemer direct aan met zijn naam. Stelt open vragen zonder de oplossing te verklappen. Nooit als onderdeel van het operationele scenario — altijd als begeleider van de training."
+                  oninput="dirty()"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── VRIJE OPERATIONELE ROLLEN ── -->
+          <div class="fst" data-i18n="roles.op_title" style="margin-bottom:10px">
+            Operationele rollen
+            <button class="btn btn-g btn-sm" onclick="addRole()" style="margin-left:auto">＋ Rol toevoegen</button>
+          </div>
+          <div class="hint-text" style="margin-bottom:12px">Definieer alle AI-sprekers die in de radiodialoog verschijnen als deel van het scenario. Claude speelt al deze rollen tegelijk.</div>
+          <div id="roles-list"></div>
+        </div>
+          <div class="fr fr1">
+            <div class="fd">
+              <label>Moeilijkheidsgraad (1 = laag · 5 = hoog)</label>
+              <div class="sw">
+                <input type="range" min="1" max="5" value="3" id="f-diff" oninput="document.getElementById('dv').textContent=this.value; dirty()"/>
+                <span class="sv" id="dv">3</span>
+              </div>
+            </div>
+          </div>
+          <div class="fr fr1">
+            <div class="fd"><label>Extra AI-instructies (optioneel)</label>
+              <textarea id="f-aiex" placeholder="Aanvullende instructies: terminologie, locatienamen, bijzondere situaties..." oninput="dirty()" style="min-height:60px"></textarea>
+            </div>
+          </div>
+          <div class="tr">
+            <div><div class="trl">Vertraagde debriefing (60 sec)</div><div class="trs">Wacht na scenario-einde voordat debriefing start</div></div>
+            <button class="tgl" id="t-dbd" onclick="flipTgl(this,'debriefDelay')"></button>
+          </div>
+          <div class="fr fr1" style="margin-top:10px">
+            <div class="fd">
+              <label data-i18n="debrief.prompt_label">Debriefing-context (optioneel)</label>
+              <div class="hint-text" style="margin-bottom:6px" data-i18n="debrief.prompt_hint">Beschrijf de toon, scenario-specifieke aandachtspunten of organisatiewensen voor de debriefing. De vaste beoordelingscriteria en scoringsnorm blijven altijd van kracht — dit veld verfijnt de focus en aanpak.</div>
+              <textarea id="f-debrief-prompt" rows="4" oninput="dirty()"
+                placeholder="Optioneel: toon, aandachtspunten, organisatiespecifieke context voor de debriefing.&#10;&#10;Voorbeeld:&#10;Spreek de deelnemer aan in een coachende toon. Let extra op het LMRA-moment en de communicatie met de shiftleider. Gebruik de naam T-204 consistent. Sluit altijd af met wat goed ging."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-s" onclick="saveScenario()">✓ Opslaan in bibliotheek</button>
+          <button class="btn btn-g" onclick="showTab('participant')">Volgende: Deelnemer →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BEDRIJFSPROFIEL -->
+    <div class="panel" id="panel-company">
+      <div class="ph"><h2>Bedrijfsprofiel</h2><p>Sla bedrijfsspecifieke context op. Koppel een profiel aan een scenario om de AI automatisch te voorzien van relevante achtergrond.</p></div>
+      <div class="pb">
+
+        <!-- Opgeslagen profiel tonen -->
+        <div id="company-saved-bar" style="display:none"></div>
+
+        <div class="fs">
+          <div class="fst" data-i18n="company.sec_profile">Bedrijfsprofiel</div>
+
+          <!-- Bedrijfsprofiel (naam, locatie, BRZO/Seveso) -->
+          <div class="fr fr2">
+            <div class="fd"><label>Bedrijfsnaam</label><input id="cp-name" placeholder="bijv. Terminal Noord BV" oninput="cpDirty()"/></div>
+            <div class="fd"><label>Locatie / Vestiging</label><input id="cp-location" placeholder="bijv. Rotterdam, Botlek" oninput="cpDirty()"/></div>
+          </div>
+          <div class="fr fr2">
+            <div class="fd"><label>Type inrichting</label>
+              <select id="cp-facility-type" onchange="cpDirty()" style="width:100%;background:var(--bg3);border:1px solid var(--border-hi);color:var(--text);border-radius:4px;padding:7px 10px;font-family:var(--mono);font-size:12px">
+                <option value="">— Selecteer type —</option>
+                <option value="Tankopslag (bulk vloeistoffen)">Tankopslag (bulk vloeistoffen)</option>
+                <option value="Tankopslag (chemie)">Tankopslag (chemie)</option>
+                <option value="Afvalverwerking">Afvalverwerking</option>
+                <option value="Olieraffinaderij">Olieraffinaderij</option>
+                <option value="LNG/LPG terminal">LNG/LPG terminal</option>
+                <option value="Overslagterminal">Overslagterminal</option>
+                <option value="Anders">Anders</option>
+              </select>
+            </div>
+            <div class="fd"><label>Aangepast type (indien Anders)</label><input id="cp-facility-custom" placeholder="Omschrijf het type inrichting" oninput="cpDirty()"/></div>
+          </div>
+          <div class="fr fr2">
+            <div class="fd">
+              <label>Regelgeving / Classificatie</label>
+              <div style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="cp-brzo" onchange="cpDirty()"> BRZO-inrichting
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="cp-seveso" onchange="cpDirty()"> Seveso III
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="cp-reach" onchange="cpDirty()"> REACH-plichtig
+                </label>
+              </div>
+            </div>
+            <div class="fd"><label>Vergunning / Bevoegd gezag</label><input id="cp-authority" placeholder="bijv. DCMR Milieudienst Rijnmond" oninput="cpDirty()"/></div>
+          </div>
+          <div class="fr fr1">
+            <div class="fd"><label>Aanvullende bedrijfsinfo (vrij)</label>
+              <textarea id="cp-extra-profile" rows="2" placeholder="Bijv. 24/7 operatie, havengebied, aangrenzende terminals..." oninput="cpDirty()"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="fs">
+          <div class="fst" data-i18n="company.sec_products">Producten & stoffen</div>
+          <div class="fr fr1">
+            <div class="fd"><label>Aanwezige producten / stoffen</label>
+              <textarea id="cp-products" rows="3" placeholder="Bijv:&#10;- Biodiesel (ADR klasse 3, vlampunt >60°C)&#10;- Zwavelzuur 96% (ADR klasse 8, corrosief)&#10;- Nafta (ADR klasse 3, vlampunt <23°C)" oninput="cpDirty()"></textarea>
+            </div>
+          </div>
+          <div class="fr fr2">
+            <div class="fd"><label>Maximale opslagcapaciteit</label><input id="cp-capacity" placeholder="bijv. 450.000 m³ totaal" oninput="cpDirty()"/></div>
+            <div class="fd"><label>Bijzondere gevaarseigenschappen</label><input id="cp-hazards" placeholder="bijv. H2S-vorming, dampdruk, dampexplosie" oninput="cpDirty()"/></div>
+          </div>
+        </div>
+
+        <div class="fs">
+          <div class="fst" data-i18n="company.sec_install">Installatie & apparatuur</div>
+          <div class="fr fr2">
+            <div class="fd"><label>Tanktypes aanwezig</label>
+              <input id="cp-tank-types" placeholder="bijv. drijvende dak, vaste kap, koeltanks" oninput="cpDirty()"/>
+            </div>
+            <div class="fd"><label>Pompsystemen / typen</label>
+              <input id="cp-pumps" placeholder="bijv. centrifugaalpompen, schroefpompen" oninput="cpDirty()"/>
+            </div>
+          </div>
+          <div class="fr fr2">
+            <div class="fd"><label>Meetsystemen / instrumentatie</label>
+              <input id="cp-instruments" placeholder="bijv. Enraf radar, Rosemount druk, Yokogawa flow" oninput="cpDirty()"/>
+            </div>
+            <div class="fd"><label>DCS / SCADA systeem</label>
+              <input id="cp-dcs" placeholder="bijv. Honeywell Experion, Siemens PCS7" oninput="cpDirty()"/>
+            </div>
+          </div>
+          <div class="fr fr1">
+            <div class="fd"><label>Specifieke apparatuurtags / naamgeving</label>
+              <textarea id="cp-tags" rows="2" placeholder="Bijv: tanks = T-100 t/m T-240, pompen = P-01 t/m P-48, kleppen = V-..." oninput="cpDirty()"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="fs">
+          <div class="fst" data-i18n="company.sec_procedures">Procedures & protocollen</div>
+          <div class="fr fr2">
+            <div class="fd"><label>Meldplicht bij incidenten</label>
+              <input id="cp-reporting" placeholder="bijv. ILT binnen 1u, DCMR binnen 4u" oninput="cpDirty()"/>
+            </div>
+            <div class="fd"><label>Alarmdrempels (richtlijn)</label>
+              <input id="cp-alarms" placeholder="bijv. >95% niveau = hoogalarm, <5% = laagalarm" oninput="cpDirty()"/>
+            </div>
+          </div>
+          <div class="fr fr2">
+            <div class="fd"><label>Escalatiestructuur</label>
+              <input id="cp-escalation" placeholder="bijv. Operator → Shiftleader → Terminal Manager" oninput="cpDirty()"/>
+            </div>
+            <div class="fd"><label>Calamiteitenorganisatie</label>
+              <input id="cp-emergency" placeholder="bijv. BHV, deelname GEVI, eigen brandweer" oninput="cpDirty()"/>
+            </div>
+          </div>
+          <div class="fr fr1">
+            <div class="fd"><label>Specifieke procedures / bijzonderheden</label>
+              <textarea id="cp-procedures" rows="2" placeholder="Bijv: verplichte dubbele handtekening bij overpompen, specifiek overlegprotocol met havenmeester..." oninput="cpDirty()"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-p" onclick="saveCompanyProfile()">✓ Profiel opslaan</button>
+          <button class="btn btn-g" onclick="clearCompanyForm()">✕ Wissen</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DEELNEMER -->
+    <div class="panel" id="panel-participant">
+      <div class="ph"><h2>Deelnemer-configuratie</h2><p>Persoonsgegevens en sessie-instellingen.</p></div>
+      <div class="pb">
+        <div class="fs">
+          <div class="fst" data-i18n="part.section">Deelnemer</div>
+          <div class="fr fr2">
+            <div class="fd"><label>Naam deelnemer</label><input id="f-pn" placeholder="Voornaam Achternaam" oninput="dirty()"/></div>
+            <div class="fd"><label>Functie</label><input id="f-pr" placeholder="bijv. Controlekamer operator" oninput="dirty()"/></div>
+          </div>
+          <div class="fr fr2">
+            <div class="fd"><label>Organisatie</label><input id="f-po" placeholder="Bedrijfsnaam" oninput="dirty()"/></div>
+            <div class="fd"><label>Locatie / Terminal</label><input id="f-pl" placeholder="bijv. Terminal Noord" oninput="dirty()"/></div>
+          </div>
+        </div>
+        <div class="fs">
+          <div class="fst" data-i18n="part.session">Sessie</div>
+          <div class="fr fr2">
+            <div class="fd"><label>Sessiedatum</label><input type="date" id="f-pd" oninput="dirty()"/></div>
+            <div class="fd"><label>Sessie-ID (automatisch)</label><input id="f-ps" readonly style="opacity:.5;cursor:not-allowed"/></div>
+          </div>
+          <div class="fr fr1">
+            <div class="fd"><label>Notitie voor trainer</label><textarea id="f-pnote" placeholder="Bijzonderheden, leerdoelen, aandachtspunten..." oninput="dirty()" style="min-height:60px"></textarea></div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-s" onclick="saveScenario()">✓ Opslaan</button>
+          <button class="btn btn-p" onclick="showTab('export')">Exporteren →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="panel" id="panel-export">
+      <div class="ph"><h2>JSON Exporteren</h2><p>Genereer het configuratiebestand voor de OIP Live Scenario module.</p></div>
+      <div class="pb">
+        <div class="exp-grid" id="exp-stats"></div>
+        <div class="fs">
+          <div class="fst" data-i18n="exp.validation">Validatie</div>
+          <div id="val-list" style="margin-bottom:16px"></div>
+        </div>
+        <div class="btn-row" style="margin-bottom:18px">
+          <button class="btn btn-s btn-full" onclick="doExport()">↓ Download scenario JSON</button>
+        </div>
+        <div class="fs">
+          <div class="fst" data-i18n="exp.expiry">Vervaldatum (optioneel)</div>
+          <div class="fr fr2" style="align-items:flex-end">
+            <div class="fd">
+              <label id="exp-expiry-label">Geldig tot en met</label>
+              <input type="date" id="f-expiry" oninput="dirty()" style="width:100%"/>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:4px" id="exp-expiry-hint">
+                Na deze datum weigert de Player het bestand. Laat leeg voor onbeperkte geldigheid.
+              </div>
+            </div>
+            <div class="fd" style="flex:0 0 auto">
+              <label>&nbsp;</label>
+              <button class="btn btn-g" onclick="clearExpiry()" style="width:100%" id="exp-expiry-clear">✕ Datum wissen</button>
+            </div>
+          </div>
+        </div>
+        <div class="fs">
+          <div class="fst" data-i18n="exp.preview">JSON Preview</div>
+          <div id="json-pre">Klik op "Download" om de JSON te genereren en hier te bekijken.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div id="conf-ov">
+  <div id="conf-box">
+    <h3 id="conf-t">Bevestigen</h3>
+    <p id="conf-m">Weet je het zeker?</p>
+    <div class="btn-row">
+      <button class="btn btn-d" id="conf-ok">Verwijderen</button>
+      <button class="btn btn-g" onclick="closeConf()">Annuleren</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="file-imp" accept=".json" style="display:none" onchange="handleImport(event)"/>
+
+<script>
+// ═══════════════════════════════════════════════
+// MODEL
+// ═══════════════════════════════════════════════
+const LS = 'oip_ai_sc_v1';
+const LS_COMPANY = 'oip_company_profiles_v1';
+let cpDirtyFlag = false;
+
+function defSc() {
+  return {
+    id: 'sc_'+Date.now(), title:'', organization:'', description:'',
+    storylineModuleId:'',
+    phases:[
+      {id:'p1',label:lang==='en'?'Orientation':   'Oriëntatie',     dur:180, dir:'', slideUrl:'', _dirOpen:false},
+      {id:'p2',label:lang==='en'?'First signals':  'Eerste signalen',dur:120, dir:'', slideUrl:'', _dirOpen:false},
+      {id:'p3',label:lang==='en'?'Escalation':     'Escalatie',      dur:180, dir:'', slideUrl:'', _dirOpen:false},
+      {id:'p4',label:lang==='en'?'Resolution':     'Afhandeling',    dur:120, dir:'', slideUrl:'', _dirOpen:false}
+    ],
+    roles:[
+      {id:'r1', name:'NAAM',     type:'dispatch', behavior:'', primary:true,  _open:false},
+      {id:'r2', name:'NAAM',     type:'field',    behavior:'', primary:false, _open:false}
+    ],
+    difficulty:3, aiExtra:'',
+    settings:{debriefDelay:false},
+    participant:{},
+    createdAt:new Date().toISOString(), updatedAt:new Date().toISOString()
+  };
+}
+
+function defCam() {
+  return {
+    id:'CAM_'+Math.random().toString(36).slice(2,6).toUpperCase(),
+    label:'', location:'', critical:false, initialState:'normal',
+    states:['normal'],
+    phaseStates:{},   // {phaseId: stateName} — state per fase
+    aiContext:''
+  };
+}
+
+let cur   = defSc();
+let isDirty = false;
+
+function getLib() { try { return JSON.parse(localStorage.getItem(LS))||[]; } catch{return[];} }
+function putLib(l){ localStorage.setItem(LS,JSON.stringify(l)); }
+
+// ═══════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════
+function showTab(n) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+n).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    if(b.getAttribute('data-tab') === n) b.classList.add('active');
+  });
+  if(n==='export')  { expStats(); doValidate(); }
+  if(n==='library') renderLib();
+  if(n==='company') { renderCompanySavedBar(); }
+  applyLang();
+}
+
+// ═══════════════════════════════════════════════
+// BEDRIJFSPROFIEL
+// ═══════════════════════════════════════════════
+function getProfiles()  { try { return JSON.parse(localStorage.getItem(LS_COMPANY))||[]; } catch{return[];} }
+function putProfiles(p) { localStorage.setItem(LS_COMPANY, JSON.stringify(p)); }
+
+function cpDirty() { cpDirtyFlag = true; }
+
+function readCompanyForm() {
+  return {
+    id: 'cp_' + Date.now(),
+    name:            document.getElementById('cp-name').value.trim(),
+    location:        document.getElementById('cp-location').value.trim(),
+    facilityType:    document.getElementById('cp-facility-type').value,
+    facilityCustom:  document.getElementById('cp-facility-custom').value.trim(),
+    brzo:            document.getElementById('cp-brzo').checked,
+    seveso:          document.getElementById('cp-seveso').checked,
+    reach:           document.getElementById('cp-reach').checked,
+    authority:       document.getElementById('cp-authority').value.trim(),
+    extraProfile:    document.getElementById('cp-extra-profile').value.trim(),
+    products:        document.getElementById('cp-products').value.trim(),
+    capacity:        document.getElementById('cp-capacity').value.trim(),
+    hazards:         document.getElementById('cp-hazards').value.trim(),
+    tankTypes:       document.getElementById('cp-tank-types').value.trim(),
+    pumps:           document.getElementById('cp-pumps').value.trim(),
+    instruments:     document.getElementById('cp-instruments').value.trim(),
+    dcs:             document.getElementById('cp-dcs').value.trim(),
+    tags:            document.getElementById('cp-tags').value.trim(),
+    reporting:       document.getElementById('cp-reporting').value.trim(),
+    alarms:          document.getElementById('cp-alarms').value.trim(),
+    escalation:      document.getElementById('cp-escalation').value.trim(),
+    emergency:       document.getElementById('cp-emergency').value.trim(),
+    procedures:      document.getElementById('cp-procedures').value.trim(),
+    savedAt:         new Date().toISOString()
+  };
+}
+
+function populateCompanyForm(p) {
+  if (!p) return;
+  document.getElementById('cp-name').value            = p.name||'';
+  document.getElementById('cp-location').value        = p.location||'';
+  document.getElementById('cp-facility-type').value   = p.facilityType||'';
+  document.getElementById('cp-facility-custom').value = p.facilityCustom||'';
+  document.getElementById('cp-brzo').checked          = !!p.brzo;
+  document.getElementById('cp-seveso').checked        = !!p.seveso;
+  document.getElementById('cp-reach').checked         = !!p.reach;
+  document.getElementById('cp-authority').value       = p.authority||'';
+  document.getElementById('cp-extra-profile').value   = p.extraProfile||'';
+  document.getElementById('cp-products').value        = p.products||'';
+  document.getElementById('cp-capacity').value        = p.capacity||'';
+  document.getElementById('cp-hazards').value         = p.hazards||'';
+  document.getElementById('cp-tank-types').value      = p.tankTypes||'';
+  document.getElementById('cp-pumps').value           = p.pumps||'';
+  document.getElementById('cp-instruments').value     = p.instruments||'';
+  document.getElementById('cp-dcs').value             = p.dcs||'';
+  document.getElementById('cp-tags').value            = p.tags||'';
+  document.getElementById('cp-reporting').value       = p.reporting||'';
+  document.getElementById('cp-alarms').value          = p.alarms||'';
+  document.getElementById('cp-escalation').value      = p.escalation||'';
+  document.getElementById('cp-emergency').value       = p.emergency||'';
+  document.getElementById('cp-procedures').value      = p.procedures||'';
+}
+
+function clearCompanyForm() {
+  const fields = ['cp-name','cp-location','cp-facility-custom','cp-authority',
+    'cp-extra-profile','cp-products','cp-capacity','cp-hazards','cp-tank-types',
+    'cp-pumps','cp-instruments','cp-dcs','cp-tags','cp-reporting','cp-alarms',
+    'cp-escalation','cp-emergency','cp-procedures'];
+  fields.forEach(id => document.getElementById(id).value = '');
+  document.getElementById('cp-facility-type').value = '';
+  document.getElementById('cp-brzo').checked  = false;
+  document.getElementById('cp-seveso').checked = false;
+  document.getElementById('cp-reach').checked  = false;
+  cpDirtyFlag = false;
+}
+
+function saveCompanyProfile() {
+  const p = readCompanyForm();
+  if (!p.name) { toast(lang==='en'?'Enter at least a company name':t('toast.fix_errors'),'err'); return; }
+  const profiles = getProfiles();
+  // Overschrijf bestaand profiel met zelfde naam, anders voeg toe
+  const idx = profiles.findIndex(x => x.name.toLowerCase() === p.name.toLowerCase());
+  if (idx >= 0) { p.id = profiles[idx].id; profiles[idx] = p; }
+  else profiles.unshift(p);
+  putProfiles(profiles);
+  cpDirtyFlag = false;
+  toast(lang==='en' ? `Profile "${p.name}" saved` : `Profiel "${p.name}" opgeslagen`, 'ok');
+  renderCompanySavedBar();
+  refreshProfileDropdown();
+}
+
+function renderCompanySavedBar() {
+  const profiles = getProfiles();
+  const bar = document.getElementById('company-saved-bar');
+  if (!profiles.length) { bar.style.display='none'; return; }
+  bar.style.display = 'block';
+  bar.innerHTML = profiles.map(p => {
+    const tags = [
+      p.brzo   ? '<span class="profile-tag brzo">BRZO</span>' : '',
+      p.seveso ? '<span class="profile-tag seveso">Seveso III</span>' : '',
+      p.facilityType ? `<span class="profile-tag">${p.facilityType}</span>` : '',
+      p.location     ? `<span class="profile-tag">${p.location}</span>` : ''
+    ].filter(Boolean).join('');
+    const d = p.savedAt ? new Date(p.savedAt).toLocaleDateString(lang==='en'?'en-GB':'nl-NL') : '—';
+    return `<div class="profile-saved-bar" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <div style="display:flex;width:100%;align-items:center;gap:10px">
+        <span class="profile-saved-name">⬡ ${esc(p.name)}</span>
+        <span class="profile-saved-meta">${t('company.saved_on')} ${d}</span>
+        <button class="btn btn-g btn-sm" onclick="editProfile('${p.id}')" style="margin-left:auto">${t('company.btn_edit')}</button>
+        <button class="btn btn-sm" style="border-color:var(--red);color:var(--red);background:transparent" onclick="deleteProfile('${p.id}')">✕</button>
+      </div>
+      <div>${tags||'<span class="profile-tag">—</span>'}</div>
+    </div>`;
+  }).join('');
+}
+
+function editProfile(id) {
+  const p = getProfiles().find(x => x.id === id);
+  if (!p) return;
+  populateCompanyForm(p);
+  toast(lang==='en' ? `Profile "${p.name}" loaded for editing` : `Profiel "${p.name}" geladen voor bewerking`);
+}
+
+function deleteProfile(id) {
+  const profiles = getProfiles().filter(x => x.id !== id);
+  putProfiles(profiles);
+  renderCompanySavedBar();
+  refreshProfileDropdown();
+  toast(lang==='en' ? 'Profile deleted' : 'Profiel verwijderd');
+}
+
+function refreshProfileDropdown() {
+  const sel = document.getElementById('f-scenario-profile');
+  if (!sel) return;
+  const profiles = getProfiles();
+  const current = cur.linkedProfileId || '';
+  sel.innerHTML = `<option value="">${t('company.opt_none')}</option>` +
+    profiles.map(p => `<option value="${p.id}" ${p.id===current?'selected':''}>${esc(p.name)}${p.location?' · '+p.location:''}</option>`).join('');
+  updateProfilePreview(current);
+}
+
+function onProfileSelect() {
+  const id = document.getElementById('f-scenario-profile').value;
+  cur.linkedProfileId = id;
+  dirty();
+  updateProfilePreview(id);
+}
+
+function updateProfilePreview(id) {
+  const prev = document.getElementById('profile-preview');
+  if (!id) { prev.style.display='none'; return; }
+  const p = getProfiles().find(x => x.id === id);
+  if (!p) { prev.style.display='none'; return; }
+  const lines = [
+    p.facilityType ? `${t('company.preview_type')}: ${p.facilityType}` : null,
+    (p.brzo||p.seveso||p.reach) ? `${t('company.preview_reg')}: ${[p.brzo?t('company.chk_brzo'):'',p.seveso?'Seveso III':'',p.reach?t('company.chk_reach'):''].filter(Boolean).join(', ')}` : null,
+    p.products ? `${t('company.preview_prod')}: ${p.products.split('\n')[0]}${p.products.includes('\n')?'…':''}` : null,
+    p.escalation ? `${t('company.preview_esc')}: ${p.escalation}` : null,
+  ].filter(Boolean);
+  prev.style.display = 'block';
+  prev.innerHTML = lines.map(l=>`<div>· ${l}</div>`).join('');
+}
+
+function buildCompanyContextPrompt(profileId) {
+  if (!profileId) return '';
+  const p = getProfiles().find(x => x.id === profileId);
+  if (!p) return '';
+  const isEN = lang === 'en';
+  const lines = [];
+  lines.push(isEN ? 'COMPANY CONTEXT:' : 'BEDRIJFSCONTEXT:');
+  lines.push(`${isEN?'Company':'Bedrijf'}: ${p.name}${p.location ? ' · ' + p.location : ''}`);
+  const ft = p.facilityCustom || p.facilityType;
+  if (ft) lines.push(`${isEN?'Facility type':'Type inrichting'}: ${ft}`);
+  const reg = [p.brzo?(isEN?'BRZO facility':'BRZO-inrichting'):null, p.seveso?'Seveso III':null, p.reach?(isEN?'REACH obligation':'REACH-plichtig'):null].filter(Boolean);
+  if (reg.length) lines.push(`${isEN?'Regulation':'Regelgeving'}: ${reg.join(', ')}`);
+  if (p.authority)    lines.push(`${isEN?'Competent authority':'Bevoegd gezag'}: ${p.authority}`);
+  if (p.extraProfile) lines.push(`${isEN?'Notes':'Toelichting'}: ${p.extraProfile}`);
+  if (p.products)     lines.push(`\n${isEN?'Products/substances present':'Aanwezige producten/stoffen'}:\n${p.products}`);
+  if (p.capacity)     lines.push(`${isEN?'Storage capacity':'Opslagcapaciteit'}: ${p.capacity}`);
+  if (p.hazards)      lines.push(`${isEN?'Special hazard properties':'Bijzondere gevaarseigenschappen'}: ${p.hazards}`);
+  if (p.tankTypes)    lines.push(`\n${isEN?'Tank types':'Tanktypes'}: ${p.tankTypes}`);
+  if (p.pumps)        lines.push(`${isEN?'Pump systems':'Pompsystemen'}: ${p.pumps}`);
+  if (p.instruments)  lines.push(`${isEN?'Instrumentation':'Meetinstrumentatie'}: ${p.instruments}`);
+  if (p.dcs)          lines.push(`${isEN?'DCS/SCADA':'DCS/SCADA'}: ${p.dcs}`);
+  if (p.tags)         lines.push(`${isEN?'Equipment naming':'Apparatuurnaamgeving'}:\n${p.tags}`);
+  if (p.reporting)    lines.push(`\n${isEN?'Incident reporting':'Meldplicht'}: ${p.reporting}`);
+  if (p.alarms)       lines.push(`${isEN?'Alarm thresholds':'Alarmdrempels'}: ${p.alarms}`);
+  if (p.escalation)   lines.push(`${isEN?'Escalation structure':'Escalatiestructuur'}: ${p.escalation}`);
+  if (p.emergency)    lines.push(`${isEN?'Emergency response':'Calamiteitenorganisatie'}: ${p.emergency}`);
+  if (p.procedures)   lines.push(`${isEN?'Specific procedures':'Specifieke procedures'}:\n${p.procedures}`);
+  return lines.join('\n');
+}
+
+// ═══════════════════════════════════════════════
+// BIBLIOTHEEK
+// ═══════════════════════════════════════════════
+function renderLib() {
+  const lib=getLib(), g=document.getElementById('lib-grid');
+  if(!lib.length){
+    g.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">◈</div><p>Nog geen scenario’s.<br><strong>Maak een nieuw scenario aan</strong> of importeer JSON.</p></div>
+      <button class="new-btn" onclick="newScenario()">＋ Nieuw scenario</button>`;
+    return;
+  }
+  g.innerHTML = lib.map(sc=>{
+    const act=sc.id===cur.id, d=sc.updatedAt?new Date(sc.updatedAt).toLocaleDateString('nl-NL'):'—';
+    return `<div class="lc ${act?'active':''}" onclick="loadSc('${sc.id}')">
+      <div class="lc-acts">
+        <button class="la" onclick="event.stopPropagation();dupSc('${sc.id}')" title="Dupliceren">⧉</button>
+        <button class="la del" onclick="event.stopPropagation();askDel('${sc.id}')" title="Verwijderen">✕</button>
+      </div>
+      <div class="lc-title">${esc(sc.title||'(naamloos)')}</div>
+      <div class="lc-org">${esc(sc.organization||'Geen organisatie')}</div>
+      <div class="lc-meta">
+        <span class="lc-pill">${sc.cameras?.length||0} camera’s</span>
+        <span class="lc-pill">${sc.phases?.length||0} fasen</span>
+        <span class="lc-pill">Bijgewerkt ${d}</span>
+      </div>
+    </div>`;
+  }).join('') + `<button class="new-btn" onclick="newScenario()">＋ Nieuw scenario</button>`;
+}
+
+function newScenario(){
+  cur=defSc(); isDirty=false; populate(); showTab('scenario'); topbar();
+  toast(lang==='en'?'New scenario created':t('toast.saved'),'ok');
+}
+
+function loadSc(id){
+  const sc=getLib().find(s=>s.id===id); if(!sc) return;
+  cur=JSON.parse(JSON.stringify(sc)); isDirty=false; populate(); showTab('scenario'); topbar();
+  toast(`"${sc.title||'Scenario'}" geladen`);
+}
+
+function saveScenario(){
+  readForm(); cur.updatedAt=new Date().toISOString();
+  const lib=getLib(), i=lib.findIndex(s=>s.id===cur.id);
+  if(i>=0) lib[i]=JSON.parse(JSON.stringify(cur));
+  else     lib.unshift(JSON.parse(JSON.stringify(cur)));
+  putLib(lib); isDirty=false; topbar(); toast(t('toast.saved'),'ok');
+}
+
+function dupSc(id){
+  const lib=getLib(), sc=lib.find(s=>s.id===id); if(!sc) return;
+  const c=JSON.parse(JSON.stringify(sc));
+  c.id='sc_'+Date.now(); c.title=(c.title||'Scenario')+' (kopie)';
+  c.createdAt=c.updatedAt=new Date().toISOString();
+  lib.unshift(c); putLib(lib); renderLib(); toast(`"${c.title}" aangemaakt`,'ok');
+}
+
+function askDel(id){
+  const sc=getLib().find(s=>s.id===id);
+  document.getElementById('conf-t').textContent=t('conf.delete_title');
+  document.getElementById('conf-m').textContent=`${t('conf.sure').replace('?','')} "${sc?.title||'?'}"?`;
+  document.getElementById('conf-ok').onclick=()=>{
+    const lib=getLib().filter(s=>s.id!==id);
+    putLib(lib); if(cur.id===id){cur=defSc();populate();topbar();}
+    closeConf(); renderLib(); toast(t('toast.deleted'));
+  };
+  document.getElementById('conf-ov').classList.add('on');
+}
+function closeConf(){ document.getElementById('conf-ov').classList.remove('on'); }
+
+// ═══════════════════════════════════════════════
+// FORM ↔ MODEL
+// ═══════════════════════════════════════════════
+function populate(){
+  sv('f-title', cur.title); sv('f-org', cur.organization);
+  sv('f-desc',  cur.description); sv('f-slurl', cur.storylineUrl);
+  sv('f-slid',  cur.storylineModuleId);
+  sv('f-sit',   cur.initialSituation||'');
+  sv('f-apikey', cur.apiKey||'');
+  const d=cur.difficulty||3;
+  document.getElementById('f-diff').value=d;
+  document.getElementById('dv').textContent=d;
+  sv('f-aiex', cur.aiExtra);
+  sv('instructor-behavior', cur.instructorBehavior||'');
+  setTgl('t-dbd', !!cur.settings?.debriefDelay);
+  sv('f-debrief-prompt', cur.debriefingPrompt||'');
+  refreshProfileDropdown();
+  if (cur.linkedProfileId) {
+    const sel = document.getElementById('f-scenario-profile');
+    if (sel) { sel.value = cur.linkedProfileId; updateProfilePreview(cur.linkedProfileId); }
+  }
+  // Deelnemer
+  sv('f-pn',   cur.participant?.name||'');
+  sv('f-pr',   cur.participant?.role||'');
+  sv('f-po',   cur.participant?.org||cur.organization||'');
+  sv('f-pl',   cur.participant?.loc||'');
+  sv('f-pd',   cur.participant?.date||new Date().toISOString().slice(0,10));
+  sv('f-pnote',cur.participant?.note||'');
+  sv('f-ps',   cur.participant?.session||genSid());
+  renderPhases(); renderRoles();
+}
+
+function readForm(){
+  cur.title=gv('f-title'); cur.organization=gv('f-org');
+  cur.description=gv('f-desc'); cur.storylineUrl=gv('f-slurl');
+  cur.storylineModuleId=gv('f-slid');
+  cur.initialSituation=gv('f-sit');
+  cur.apiKey=gv('f-apikey');
+  cur.instructorBehavior = gv('instructor-behavior');
+  // operationele rollen worden live bijgehouden via updateRole
+  cur.difficulty=parseInt(document.getElementById('f-diff').value)||3;
+  cur.aiExtra=gv('f-aiex');
+  cur.debriefingPrompt=gv('f-debrief-prompt');
+  cur.linkedProfileId = document.getElementById('f-scenario-profile')?.value || '';
+  cur.settings={debriefDelay:isTgl('t-dbd')};
+  cur.participant={
+    name:gv('f-pn'),role:gv('f-pr'),org:gv('f-po'),loc:gv('f-pl'),
+    date:gv('f-pd'),note:gv('f-pnote'),session:gv('f-ps')
+  };
+}
+
+function sv(id,v){ const e=document.getElementById(id); if(e) e.value=v||''; }
+function gv(id)  { return document.getElementById(id)?.value?.trim()||''; }
+function dirty() { isDirty=true; topbar(); }
+
+function topbar(){
+  document.getElementById('top-org').textContent=cur.organization||cur.participant?.org||t('top.no_org');
+  document.getElementById('top-sc').textContent=cur.title||t('top.no_sc');
+  const b=document.getElementById('top-badge');
+  if(isDirty){ b.className='top-badge b-unsaved'; b.textContent=t('top.unsaved'); }
+  else {
+    const inLib=getLib().some(s=>s.id===cur.id);
+    b.className=inLib?'top-badge b-saved':'top-badge b-new';
+    b.textContent=inLib?t('top.saved'):t('top.new');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// FASEN
+// ═══════════════════════════════════════════════
+
+// Placeholder-suggesties per fasepositie
+function getPhaseHints() {
+  if (lang === 'en') return [
+    { label: 'e.g. Orientation / Situation assessment',
+      dir: `Describe what the external party does in this phase and what you expect from the participant.\n\nExample:\nStart the scenario with a brief introduction from the external party (e.g. ship officer or contractor). Ask the operator to check all cameras and assess the situation before continuing. Wait for an explicit "ready", "done" or "all checked" message.\n\nCheck the camera log: if the operator reports ready but has not viewed all critical cameras, have the external party ask if everything has been checked — do not name a specific camera.` },
+    { label: 'e.g. First signals',
+      dir: `Describe which deviations become visible and how the AI introduces them.\n\nExample:\nOnly after the operator's ready message do you introduce the first subtle deviation: a slightly elevated vibration sensor at P-33, no alarm yet. Have the contact mention this in passing, not as urgent. DCS shows a small flow deviation — still within margins.` },
+    { label: 'e.g. Escalation / Alarm phase',
+      dir: `Describe how the scenario escalates and which decisions are critical.\n\nExample:\nThe situation deteriorates noticeably. Generate a DCS alarm for P-33 (PRIORITY: HIGH). The field operator reports via radio that he smells smoke. If the operator does not intervene now, let the situation escalate further to fire alarm.` },
+    { label: 'e.g. Resolution / Recovery',
+      dir: `Describe how the scenario concludes after correct or incorrect action.\n\nExample:\nIf the operator acted correctly: confirm via the contact that the incident has been stabilised. Give a brief summary. End the scenario with [SCENARIO-EINDE].\n\nIf mistakes were made: briefly state the consequence without moralising. Then [SCENARIO-EINDE].` },
+  ];
+  return [
+    { label: 'bijv. Ori\u00ebntatie / Situatiebeoordeling',
+      dir: `Beschrijf wat de externe partij of contractor doet in deze fase en wat je van de deelnemer verwacht.\n\nVoorbeeld:\nStart het scenario met een korte introductie van de externe partij (bijv. scheepsofficier of contractor). Vraag de operator alle camera\u2019s te controleren en de situatie te beoordelen alvorens de operatie te continueren. Wacht op een expliciete melding van "gereed", "klaar" of "alles bekeken".\n\nControleer de camera-log: als de operator gereed meldt maar niet alle kritieke camera\u2019s heeft bekeken, laat de externe partij vragen of alles is gecontroleerd \u2014 noem geen specifieke camera bij naam.` },
+    { label: 'bijv. Eerste signalen',
+      dir: `Beschrijf welke afwijkingen nu zichtbaar worden en hoe de AI die introduceert.\n\nVoorbeeld:\nPas na de gereed-melding van de operator begin je met de eerste subtiele afwijking: een licht verhoogde trillingssensor bij P-33, nog geen alarm. Laat de dispatcher dit terloops benoemen, niet als urgentie. DCS toont een kleine debietafwijking \u2014 nog binnen marges.` },
+    { label: 'bijv. Escalatie / Alarmfase',
+      dir: `Beschrijf hoe het scenario escaleert en welke beslissingen kritiek zijn.\n\nVoorbeeld:\nDe situatie verslechtert merkbaar. Genereer een DCS-alarm voor P-33 (PRIORITEIT: HOOG). Jan meldt via de radio dat hij rook ruikt bij het pompstation. Als de operator nu niet ingrijpt (pomp stoppen, melding maken), laat de situatie verder escaleren naar brandalarm.` },
+    { label: 'bijv. Afhandeling / Herstel',
+      dir: `Beschrijf hoe het scenario afgerond wordt na correcte of incorrecte handeling.\n\nVoorbeeld:\nAls de operator correct heeft gehandeld: bevestig via dispatch dat het incident is gestabiliseerd. Geef een korte samenvatting van de situatie. Start de debriefingsfase door het scenario te be\u00ebindigen met [SCENARIO-EINDE].\n\nAls er fouten zijn gemaakt: geef kort aan wat de consequentie was, zonder te preken. Dan [SCENARIO-EINDE].` },
+  ];
+}
+
+function renderPhases(){
+  const c=document.getElementById('phases-list');
+  if(!cur.phases?.length){
+    c.innerHTML=`<div style="color:var(--text-dim);font-size:13px;padding:4px 0">${t('ph.none')}</div>`;
+    return;
+  }
+  const hints = getPhaseHints();
+  c.innerHTML=cur.phases.map((p,i)=>{
+    const hint=hints[i]||{label:lang==='en'?'e.g. New phase':'bijv. Nieuwe fase',dir:''};
+    const hasDir=!!(p.dir&&p.dir.trim());
+    const isOpen=p._dirOpen||false;
+
+    // Vertaal bekende standaard fase-labels bij taalwissel
+    const phaseTranslations = {
+      nl: { 'Orientation':'Oriëntatie', 'First signals':'Eerste signalen', 'Escalation':'Escalatie', 'Resolution':'Afhandeling' },
+      en: { 'Oriëntatie':'Orientation', 'Eerste signalen':'First signals', 'Escalatie':'Escalation', 'Afhandeling':'Resolution' }
+    };
+    const displayLabel = phaseTranslations[lang]?.[p.label] || p.label;
+    return `<div class="phase-card${hasDir?' has-dir':''}" id="pcard${i}">
+      <div class="phase-hdr">
+        <div class="pnum">${i+1}</div>
+        <input class="pinput" placeholder="${hint.label}" value="${esc(displayLabel)}"
+          oninput="cur.phases[${i}].label=this.value;dirty()"/>
+        <input type="number" min="30" max="600" value="${p.dur||120}" class="pdur"
+          placeholder="sec" oninput="cur.phases[${i}].dur=parseInt(this.value)||120;dirty()"/>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);flex-shrink:0">sec</span>
+        <button class="pdir-btn${isOpen?' active':''}" id="pdb${i}"
+          onclick="togPhaseDir(${i})" title="${t('ph.regie_lbl')}">
+          ${hasDir?t('ph.btn_regie_filled'):t('ph.btn_regie')}
+        </button>
+        <button class="btn btn-g btn-sm" onclick="remPhase(${i})">✕</button>
+      </div>
+      <div class="fd" style="padding:8px 12px 0;display:flex;gap:8px;align-items:center">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;flex-shrink:0">Storyline URL fase ${i+1}</label>
+        <input value="${esc(p.slideUrl||'')}" placeholder="https://...story.html#/slide-id (optioneel)"
+          oninput="cur.phases[${i}].slideUrl=this.value;dirty()"
+          style="flex:1;background:var(--bg3);border:1px solid var(--border-hi);border-radius:4px;padding:6px 10px;color:var(--text-bright);font-family:var(--mono);font-size:11px;outline:none"/>
+      </div>
+      <div class="phase-dir-wrap${isOpen?' open':''}" id="pdw${i}">
+        <div class="phase-dir-lbl">${t('ph.regie_lbl')} ${i+1}</div>
+        <div class="phase-dir-hint">${t('ph.regie_hint')}</div>
+        <textarea class="pdir-ta" id="pdt${i}" rows="5"
+          placeholder="${hint.dir}"
+          oninput="updatePhaseDir(${i},this.value)">${esc(p.dir||'')}</textarea>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togPhaseDir(i){
+  cur.phases[i]._dirOpen=!cur.phases[i]._dirOpen;
+  const wrap=document.getElementById('pdw'+i);
+  const btn=document.getElementById('pdb'+i);
+  const hasDir=!!(cur.phases[i].dir&&cur.phases[i].dir.trim());
+  wrap.classList.toggle('open',cur.phases[i]._dirOpen);
+  btn.classList.toggle('active',cur.phases[i]._dirOpen);
+  btn.textContent=hasDir?t('ph.btn_regie_filled'):t('ph.btn_regie');
+}
+
+function updatePhaseDir(i,val){
+  cur.phases[i].dir=val;
+  const card=document.getElementById('pcard'+i);
+  const btn=document.getElementById('pdb'+i);
+  const hasDir=!!(val&&val.trim());
+  card.classList.toggle('has-dir',hasDir);
+  btn.textContent=hasDir?t('ph.btn_regie_filled'):t('ph.btn_regie');
+  dirty();
+}
+
+function addPhase(){
+  cur.phases.push({id:'p'+Date.now(),label:'',dur:120,dir:'',_dirOpen:false});
+  renderPhases(); dirty();
+}
+
+function remPhase(i){ cur.phases.splice(i,1); renderPhases(); dirty(); }
+
+// ═══════════════════════════════════════════════
+// ROLLEN
+// ═══════════════════════════════════════════════
+
+function getRoleTypes() {
+  if (lang === 'en') return [
+    { value:'dispatch', label:'External / Contractor' },
+    { value:'field',    label:'Field operator' },
+    { value:'shift',    label:'Shift leader' },
+    { value:'tech',     label:'Technician' },
+    { value:'external', label:'External party' },
+    { value:'custom',   label:'Custom' }
+  ];
+  return [
+    { value:'dispatch', label:'Extern / Contractor' },
+    { value:'field',    label:'Veldoperator' },
+    { value:'shift',    label:'Shiftleider' },
+    { value:'tech',     label:'Technicus' },
+    { value:'external', label:'Externe partij' },
+    { value:'custom',   label:'Aangepast' }
+  ];
+}
+
+function getRoleBehaviorHints() {
+  if (lang === 'en') return {
+    dispatch: 'Describe how the external party or contractor communicates.\n\nExample:\nApproachable but businesslike. Represents an external organisation (e.g. shipping company, contractor). Always asks for confirmation. Has own interests but cooperates with the operator.',
+    field:    'Describe how the field operator reacts.\n\nExample:\nPractical, calls when something looks odd. Uses the operator\'s first name. Reports what they see but does not interpret.',
+    shift:    'Describe the shift leader\'s role.\n\nExample:\nOnly appears during escalation. Asks precise questions about what has already been done. Takes over when the situation becomes critical.',
+    tech:     'Describe the technician\'s role.\n\nExample:\nCalled for technical advice. Explains the installation but does not make operational decisions.',
+    external: 'Describe the external party.\n\nExample:\nFor example the ship officer of the tanker, or an adjacent terminal. Responds to questions but has own interests.',
+    custom:   'Describe the behaviour of this role.\n\nExample:\nWhat is this person\'s function? How do they communicate? When does this role appear?'
+  };
+  return {
+    dispatch: 'Beschrijf hoe de externe partij of contractor communiceert.\n\nVoorbeeld:\nBenaderbaar maar zakelijk. Vertegenwoordigt een externe organisatie (bijv. rederij, aannemer). Vraagt altijd bevestiging terug. Heeft eigen belangen maar werkt samen met de operator.',
+    field:    'Beschrijf hoe de veldoperator reageert.\n\nVoorbeeld:\nPraktisch ingesteld, belt als hij iets vreemds ziet. Gebruikt de voornaam van de operator. Rapporteert wat hij ziet maar interpreteert niet zelf.',
+    shift:    'Beschrijf de rol van de shiftleider.\n\nVoorbeeld:\nKomt pas in beeld bij escalatie. Stelt precieze vragen over wat er al gedaan is. Neemt het over als de situatie kritiek wordt.',
+    tech:     'Beschrijf de technicus-rol.\n\nVoorbeeld:\nWordt gebeld voor technisch advies. Geeft uitleg over installatie maar neemt geen operationele beslissingen.',
+    external: 'Beschrijf de externe partij.\n\nVoorbeeld:\nBijvoorbeeld de scheepsofficier van het tankschip, of een aangrenzende terminal. Reageert op vragen maar heeft eigen belangen.',
+    custom:   'Beschrijf het gedrag van deze rol.\n\nVoorbeeld:\nWat is de functie van deze persoon? Hoe communiceert hij/zij? Wanneer komt deze rol in beeld?'
+  };
+}
+
+function renderRoles(){
+  if(!cur.roles || !Array.isArray(cur.roles)){
+    const old = cur.roles || {};
+    cur.roles = [
+      {id:'r1',name:old.dispatch||'NAAM',type:'dispatch',behavior:'',primary:true, _open:false},
+      {id:'r2',name:old.field||'NAAM',       type:'field',   behavior:'',primary:false,_open:false}
+    ];
+    if(old.shift && old.shift !== 'SHIFT')
+      cur.roles.push({id:'r3',name:old.shift,type:'shift',behavior:'',primary:false,_open:false});
+  }
+
+  // Zorg dat er altijd precies één primaire rol is als geen enkele is aangevinkt
+  const hasPrimary = cur.roles.some(r=>r.primary);
+  if(!hasPrimary && cur.roles.length) cur.roles[0].primary = true;
+
+  const el = document.getElementById('roles-list');
+  if(!cur.roles.length){
+    el.innerHTML=`<div style="color:var(--text-dim);font-size:13px;padding:4px 0">${t('val.no_roles')}</div>`;
+    return;
+  }
+
+  el.innerHTML = cur.roles.map((r,i) => {
+    const typeOpts = getRoleTypes().map(t =>
+      `<option value="${t.value}" ${r.type===t.value?'selected':''}>${t.label}</option>`
+    ).join('');
+    const badgeCls  = `role-badge type-${r.type||'custom'}`;
+    const typeLabel = getRoleTypes().find(t=>t.value===r.type)?.label || (lang==='en'?'Custom':'Aangepast');
+    const hasBhv    = !!(r.behavior && r.behavior.trim());
+    const isPrimary = !!r.primary;
+    const isOpen    = r._open || false;
+    const hint      = getRoleBehaviorHints()[r.type||'custom'] || getRoleBehaviorHints().custom;
+
+    // Kaartrand: gedrag-markering
+    const cardCls = ['role-card', hasBhv ? 'has-behavior' : ''].filter(Boolean).join(' ');
+
+    return `<div class="${cardCls}" id="rcard${i}">
+      <div class="role-hdr">
+        <span class="${badgeCls}" id="rbadge${i}">${esc(typeLabel)}</span>
+        <input class="role-name-input" id="rname${i}"
+          value="${esc(r.name)}" placeholder="NAAM"
+          oninput="updateRole(${i},'name',this.value)"
+          title="De naam die boven elke chatbel verschijnt in de simulator"/>
+        <select class="role-type-select" id="rtype${i}"
+          onchange="updateRole(${i},'type',this.value)">
+          ${typeOpts}
+        </select>
+        <button class="rbhv-btn${isOpen?' active':''}" id="rbtn${i}"
+          onclick="togRoleBhv(${i})"
+          title="${t('roles.behavior_lbl')}">
+          ${hasBhv?t('roles.btn_behavior_f'):t('roles.btn_behavior')}
+        </button>
+        <button class="btn btn-g btn-sm" onclick="remRole(${i})" title="Rol verwijderen">✕</button>
+      </div>
+      <div class="role-bhv-wrap${isOpen?' open':''}" id="rbwrap${i}">
+        <div class="role-bhv-lbl">${t('roles.behavior_lbl')} — ${esc(r.name||'Rol')}</div>
+        <div class="role-bhv-hint">
+          ${t('roles.behavior_hint')}
+        </div>
+        <textarea class="rbhv-ta" id="rbta${i}" rows="4"
+          placeholder="${esc(hint)}"
+          oninput="updateRole(${i},'behavior',this.value)">${esc(r.behavior||'')}</textarea>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addRole(){
+  if(!Array.isArray(cur.roles)) cur.roles=[];
+  cur.roles.push({id:'r'+Date.now(),name:'',type:'field',behavior:'',primary:false,_open:false});
+  renderRoles(); dirty();
+  const last = cur.roles.length - 1;
+  setTimeout(()=>document.getElementById('rname'+last)?.focus(), 50);
+}
+
+function setPrimaryRole(i){
+  // Zet alle rollen op primary:false, daarna de geselecteerde op true
+  cur.roles.forEach((r,idx) => r.primary = (idx === i));
+  renderRoles(); dirty();
+}
+
+function remRole(i){
+  cur.roles.splice(i,1); renderRoles(); dirty();
+}
+
+function updateRole(i, key, val){
+  cur.roles[i][key] = val;
+  if(key==='type'){
+    // Badge updaten zonder volledige re-render
+    const typeLabel = getRoleTypes().find(t=>t.value===val)?.label||(lang==='en'?'Custom':'Aangepast');
+    const badge = document.getElementById('rbadge'+i);
+    if(badge){ badge.className=`role-badge type-${val}`; badge.textContent=typeLabel; }
+  }
+  if(key==='behavior'){
+    const hasBhv = !!(val&&val.trim());
+    document.getElementById('rcard'+i)?.classList.toggle('has-behavior', hasBhv);
+    const btn = document.getElementById('rbtn'+i);
+    if(btn) btn.textContent = hasBhv ? t('roles.btn_behavior_f') : t('roles.btn_behavior');
+  }
+  dirty();
+}
+
+function togRoleBhv(i){
+  cur.roles[i]._open = !cur.roles[i]._open;
+  document.getElementById('rbwrap'+i)?.classList.toggle('open', cur.roles[i]._open);
+  document.getElementById('rbtn'+i)?.classList.toggle('active', cur.roles[i]._open);
+}
+
+// ═══════════════════════════════════════════════
+// CAMERA'S
+// ═══════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════
+// TOGGLES
+// ═══════════════════════════════════════════════
+function flipTgl(btn,key){ cur.settings=cur.settings||{}; cur.settings[key]=!cur.settings[key]; btn.classList.toggle('on',cur.settings[key]); dirty(); }
+function setTgl(id,v){ const b=document.getElementById(id); if(b) b.classList.toggle('on',!!v); }
+function isTgl(id){ return document.getElementById(id)?.classList.contains('on')||false; }
+
+// ═══════════════════════════════════════════════
+// EXPORT + VALIDATIE
+// ═══════════════════════════════════════════════
+function doValidate(){
+  readForm();
+  const errs=[], warns=[];
+  if(!cur.title)             errs.push(t('val.no_title'));
+  if(!cur.phases?.length)    errs.push(t('val.no_phases'));
+  const roles = Array.isArray(cur.roles) ? cur.roles : [];
+  if(!roles.length)          errs.push(t('val.no_roles'));
+  roles.forEach((r,i)=>{
+    if(!r.name?.trim()) warns.push(t('val.role_no_name', i+1));
+  });
+  if(!cur.organization)      warns.push(t('val.no_org'));
+  if(!cur.participant?.name) warns.push(t('val.no_participant'));
+  cur.cameras?.forEach(c=>{
+    if(!c.label)      warns.push(t('val.cam_no_label', c.id));
+    if(!c.aiContext)  warns.push(t('val.cam_no_ctx', c.id));
+    if(c.states.length<2&&c.critical) warns.push(t('val.cam_one_state', c.id));
+  });
+  const el=document.getElementById('val-list');
+  if(!errs.length&&!warns.length){
+    el.innerHTML=`<div class="val-item val-ok">${t('val.ok')}</div>`;
+    return true;
+  }
+  el.innerHTML=errs.map(e=>`<div class="val-item val-err">✕ ${e}</div>`).join('')+
+               warns.map(w=>`<div class="val-item val-wrn">△ ${w}</div>`).join('');
+  return errs.length===0;
+}
+
+function expStats(){
+  readForm();
+  const s=[
+    {v:cur.cameras?.length||0,           l:"Camera’s"},
+    {v:cur.phases?.length||0,            l:'Fasen'},
+    {v:cur.difficulty||3,                l:'Niveau'}
+  ];
+  document.getElementById('exp-stats').innerHTML=s.map(x=>`
+    <div class="exp-card"><div class="ev">${x.v}</div><div class="el">${x.l}</div></div>`).join('');
+}
+
+function buildJSON(){
+  readForm();
+
+  // Instructeur-gedragsinstructie
+  const instrBhv = cur.instructorBehavior?.trim();
+  const instructorPrompt = `SYSTEEMROL — INSTRUCTEUR (altijd aanwezig, staat buiten het scenario):
+De Instructeur is een vaste begeleiderrol die NIET operationeel deelneemt aan het scenario. Hij spreekt de deelnemer direct aan, bewaakt de voortgang, en leidt het scenario naar de debriefing.
+Taken van de Instructeur:
+- Bewaakt fase-overgangen en geeft het sein voor de volgende fase
+- Geeft bij lage moeilijkheidsgraad (difficulty 1-2) subtiele hints als de deelnemer vastloopt of kritieke stappen mist
+- Stelt open begeleidingsvragen zonder de oplossing weg te geven
+- Sluit het scenario netjes af richting debriefing met [SCENARIO-EINDE]
+- Verschijnt NOOIT als operationele stem in het radioscenario
+${instrBhv ? `\nSpecifieke instructies voor deze training:\n${instrBhv}` : ''}
+
+De Instructeur is de ENIGE rol die hints mag geven. Operationele rollen (zie hieronder) geven nooit hints, ongeacht de moeilijkheidsgraad.`;
+
+  // Zorg voor array-formaat operationele rollen
+  const roles = Array.isArray(cur.roles) ? cur.roles : [
+    {name: cur.roles?.dispatch||'NAAM', type:'dispatch', behavior:'', primary:true},
+    {name: cur.roles?.field||'NAAM',    type:'field',    behavior:'', primary:false}
+  ];
+
+  // Operationele rollen prompt
+  const rolesPrompt = roles
+    .filter(r => r.name)
+    .map(r => {
+      const typeLabel = getRoleTypes().find(t=>t.value===r.type)?.label || r.type;
+      const bhv = r.behavior?.trim();
+      return `- ${r.name} (${typeLabel})${bhv ? ':\n  '+bhv : ': speelt deze rol realistisch en in karakter.'}`;
+    }).join('\n');
+
+  // Fase-instructieblok + camera-states per fase
+  const phaseDirections = (cur.phases||[])
+    .map((p,i)=>{
+      const camStateLines = (cur.cameras||[])
+        .filter(cam => cam.phaseStates?.[p.id])
+        .map(cam => `  → ${cam.label||cam.id}: state "${cam.phaseStates[p.id]}"`)
+        .join('\n');
+      const dir = p.dir?.trim() || '';
+      const camBlock = camStateLines
+        ? `\nCAMERA-STATES BIJ FASE-OVERGANG:\n${camStateLines}`
+        : '';
+      if (!dir && !camBlock) return null;
+      return `=== FASE ${i+1}: ${p.label||'Fase '+(i+1)} (indicatief ${p.dur||120}s) ===\n${dir}${camBlock}`;
+    })
+    .filter(Boolean)
+    .join('\n\n');
+
+  // Fase-overgang instructie voor Instructeur
+  const hasCamStates = (cur.cameras||[]).some(cam =>
+    (cur.phases||[]).some(p => cam.phaseStates?.[p.id])
+  );
+  const phaseTokenInstruction = (() => {
+    if (!hasCamStates) return '';
+    const phaseList = (cur.phases||[]).slice(1).map((p,i) =>
+      `- Overgang naar fase ${i+2} (${p.label||'Fase '+(i+2)}): stuur [FASE:${i+2}] op een aparte regel`
+    ).join('\n');
+    return `\n\nFASE-OVERGANGEN EN CAMERA-STATES:
+De beginsituatie (fase 1) is al actief bij scenario-start — stuur NOOIT [FASE:1] bij het openingsbericht.
+Stuur een fase-token UITSLUITEND bij de start van een NIEUWE fase. Sla GEEN fasen over:
+${phaseList}
+Het token triggert de camera-state wijzigingen in Storyline. Zet het token ALTIJD alleen op een aparte regel.`;
+  })();
+
+  const companyContext = buildCompanyContextPrompt(cur.linkedProfileId);
+
+  const combinedPrompt = [
+    instructorPrompt + phaseTokenInstruction,
+    roles.length
+      ? `OPERATIONELE ROLLEN:\n${rolesPrompt}`
+      : '',
+    companyContext || '',
+    cur.aiExtra?.trim()
+      ? `ALGEMENE SCENARIO-INSTRUCTIES:\n${cur.aiExtra.trim()}`
+      : '',
+    phaseDirections
+      ? `REGIEINSTRUCTIES PER FASE:\n${phaseDirections}`
+      : ''
+  ].filter(Boolean).join('\n\n---\n\n');
+
+  const expiryVal = document.getElementById('f-expiry')?.value;
+  const metaBlock = expiryVal
+    ? { _meta: { expiresAt: new Date(expiryVal + 'T23:59:59').toISOString(), setAt: new Date().toISOString() } }
+    : {};
+
+  return {
+    ...metaBlock,
+    schemaVersion:'1.4', exportedAt:new Date().toISOString(),
+    language: lang,
+    participant: cur.participant,
+    aiScenario:{
+      scenarioId:cur.id, scenarioTitle:cur.title, organization:cur.organization,
+      description:cur.description,
+      storylineModuleId:cur.storylineModuleId, difficulty:cur.difficulty,
+      initialSituation: cur.initialSituation||'',
+      apiKey: cur.apiKey||'',
+      systemPromptExtra: combinedPrompt,
+      debriefingPrompt: cur.debriefingPrompt?.trim() || '',
+      linkedProfileId: cur.linkedProfileId || '',
+      companyContext: companyContext || '',
+      systemPromptExtraRaw:{
+        instructor: { behavior: cur.instructorBehavior||'' },
+        general: cur.aiExtra||'',
+        roles: roles,
+        phaseDirections: (cur.phases||[]).map((p,i)=>({
+          phaseIndex:i+1, label:p.label||'', durationHint:p.dur||120,
+          direction:p.dir||''
+        }))
+      },
+      instructor: { behavior: cur.instructorBehavior||'' },
+      roles: roles,
+      settings:cur.settings,
+      phases:(cur.phases||[]).map(p=>({
+        id:p.id, label:p.label, durationHint:p.dur, direction:p.dir||'', slideUrl:p.slideUrl||''
+      })),
+    }
+  };
+}
+
+function clearExpiry() {
+  const f = document.getElementById('f-expiry');
+  if (f) f.value = '';
+  dirty();
+}
+
+function doExport(){
+  if(!doValidate()){ toast(t('toast.fix_errors'),'err'); return; }
+  const obj=buildJSON(), json=JSON.stringify(obj,null,2);
+  document.getElementById('json-pre').textContent=json;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+  a.download='oip-scenario-'+(cur.title||'scenario').replace(/[^a-z0-9]/gi,'_').toLowerCase()+'.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  toast(t('toast.exported'),'ok');
+}
+
+function importJSON(){ document.getElementById('file-imp').click(); }
+
+function handleImport(ev){
+  const f=ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const obj=JSON.parse(e.target.result);
+
+      // ── Detecteer structuur: nieuw (obj.aiScenario) of oud (obj direct) ──
+      const sc = obj.aiScenario || obj;
+      const schema = obj.schemaVersion || sc.schemaVersion || '0';
+      const isOld  = parseFloat(schema) < 1.1;
+
+      // ── Rollen migratie ────────────────────────────────────────────────
+      // Oud formaat: { dispatch:'DISPATCH', field:'JAN', shift:'SHIFT' }
+      // Nieuw formaat: array van rol-objecten
+      let roles;
+      if (Array.isArray(sc.roles)) {
+        roles = sc.roles.map(r=>({
+          id:       r.id||'r'+Date.now()+Math.random(),
+          name:     r.name||'',
+          type:     r.type||'custom',
+          behavior: r.behavior||'',
+          primary:  r.primary||false,
+          _open:    false
+        }));
+        // Zorg dat er één primaire is
+        if (!roles.some(r=>r.primary) && roles.length) roles[0].primary=true;
+      } else {
+        // Oud vlak object — migreer naar array
+        const d = sc.roles?.dispatch || sc.roles?.roleDispatch || 'NAAM';
+        const fi = sc.roles?.field    || sc.roles?.roleField    || 'NAAM';
+        const sh = sc.roles?.shift    || sc.roles?.roleShift    || '';
+        roles = [
+          {id:'r1',name:d,  type:'dispatch',behavior:'',primary:true, _open:false},
+          {id:'r2',name:fi, type:'field',   behavior:'',primary:false,_open:false}
+        ];
+        if (sh && sh !== 'SHIFT') {
+          roles.push({id:'r3',name:sh,type:'shift',behavior:'',primary:false,_open:false});
+        }
+      }
+
+      // ── Fasen migratie ─────────────────────────────────────────────────
+      // Oud: { label, durationHint } — nieuw: ook direction/dir veld
+      const phases = (sc.phases||[]).map(p=>({
+        id:       p.id||'p'+Date.now()+Math.random(),
+        label:    p.label||'',
+        dur:      p.durationHint||p.dur||120,
+        dir:      p.direction||p.dir||'',
+        slideUrl: p.slideUrl||'',
+        _dirOpen: false
+      }));
+
+      // Als geen fasen in oud formaat, maak standaard fasen aan
+      const finalPhases = phases.length ? phases : [
+        {id:'p1',label:lang==='en'?'Orientation':   'Oriëntatie',     dur:180,dir:'',_dirOpen:false},
+        {id:'p2',label:lang==='en'?'First signals':  'Eerste signalen',dur:120,dir:'',_dirOpen:false},
+        {id:'p3',label:lang==='en'?'Escalation':     'Escalatie',      dur:180,dir:'',_dirOpen:false},
+        {id:'p4',label:lang==='en'?'Resolution':     'Afhandeling',    dur:120,dir:'',_dirOpen:false}
+      ];
+
+      // ── Camera's migratie ────────────────────────────────────────────────────────────
+      // Schema 1.3: escalation→schema 1.4: phaseStates:{phaseId:state}
+      const cameras = (sc.cameras||[]).map(c=>({
+        id:           c.id||'CAM_?',
+        label:        c.label||c.name||'',
+        location:     c.location||'',
+        initialState: c.initialState||'normal',
+        states:       c.states||(c.initialState?[c.initialState,'normal']:['normal']),
+        critical:     c.critical||false,
+        aiContext:    c.aiContext||c.context||'',
+        phaseStates:  c.phaseStates||{}
+      }));
+
+      // ── Situatietekst ──────────────────────────────────────────────────
+      // Nieuw: initialSituation · Oud: situation of initialSituation
+      const situation = sc.initialSituation || sc.situation || '';
+
+      // ── Instructor ────────────────────────────────────────────────────
+      const instructorBhv = sc.instructor?.behavior
+        || sc.systemPromptExtraRaw?.instructor?.behavior || '';
+
+      // ── Extra AI-instructies ───────────────────────────────────────────
+      // Nieuw: systemPromptExtraRaw.general · Oud: aiExtra of systemPromptExtra
+      const aiExtra = sc.systemPromptExtraRaw?.general
+        || sc.aiExtra
+        || (isOld ? sc.systemPromptExtra : '') || '';
+
+      // ── Moeilijkheidsgraad ─────────────────────────────────────────────
+      // Oud: 1-5 getal of 'easy'/'medium'/'hard' string
+      let diff = sc.difficulty||3;
+      if (typeof diff === 'string') {
+        diff = diff==='easy'?1 : diff==='hard'?5 : 3;
+      }
+
+      cur = {
+        id:               sc.scenarioId||'sc_'+Date.now(),
+        title:            sc.scenarioTitle||sc.title||'',
+        organization:     sc.organization||'',
+        description:      sc.description||'',
+        storylineUrl:     sc.storylineUrl||'',
+        storylineModuleId:sc.storylineModuleId||sc.moduleId||'',
+        initialSituation: situation,
+        apiKey:           sc.apiKey||'',
+        instructorBehavior: instructorBhv,
+        phases:           finalPhases,
+        roles,
+        difficulty:       diff,
+        aiExtra,
+        settings:         sc.settings||{escalation:true,debriefDelay:false},
+        cameras,
+        participant:      obj.participant||{},
+        createdAt:        new Date().toISOString(),
+        updatedAt:        new Date().toISOString()
+      };
+
+      isDirty=false; populate(); showTab('scenario'); topbar();
+
+      const migMsg = isOld ? t('toast.imported_old') : '';
+      toast(`"${cur.title||t('tab.scenario')}" ${t('toast.imported')}${migMsg}`,'ok');
+
+    }catch(err){
+      console.error('[OIP import]', err);
+      toast(t('toast.invalid_json')+' — '+err.message,'err');
+    }
+    ev.target.value='';
+  };
+  r.readAsText(f);
+}
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function genSid(){ return 'SID-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,6).toUpperCase(); }
+
+let tt=null;
+function toast(m,t=''){
+  const el=document.getElementById('toast'); el.textContent=m;
+  el.className='show'+(t?' '+t:''); clearTimeout(tt);
+  tt=setTimeout(()=>el.className='',2800);
+}
+
+
+// ═══════════════════════════════════════════════
+// I18N — Meertalige ondersteuning
+// ═══════════════════════════════════════════════
+var lang = 'nl';
+
+var T = {
+  nl: {
+    // Topbar
+    'top.new':        'Nieuw',
+    'top.saved':      'Opgeslagen',
+    'top.unsaved':    'Niet opgeslagen',
+    'top.no_org':     'Geen organisatie',
+    'top.no_sc':      'Geen scenario geladen',
+
+    // Sidebar tabs
+    'tab.library':    'Lib',
+    'tab.scenario':   'Scenario',
+    'tab.company':    'Bedrijf',
+    'tab.participant':'Deeln.',
+    'tab.export':     'Export',
+
+    // Bibliotheek
+    'lib.title':      'Scenario-bibliotheek',
+    'lib.desc':       'Maak scenario’s aan, laad of dupliceer voor hergebruik. Opgeslagen in deze browser.',
+    'lib.new':        '＋ Nieuw scenario',
+    'lib.import':     '↑ JSON importeren',
+    'lib.empty_title':'Geen scenario’s',
+    'lib.empty_desc': 'Maak een nieuw scenario aan of importeer een bestaand JSON-bestand.',
+
+    // Scenario
+    'sc.title':       'Scenario-definitie',
+    'sc.desc':        'Verhaal, fasen en AI-gedrag voor dit scenario.',
+    'company.title':  'Bedrijfsprofiel',
+    'company.desc':   'Beheer bedrijfsspecifieke context voor de AI. Koppel een profiel aan een scenario via het scenario-tabblad.',
+    'company.tab_title':       'Bedrijfsprofiel',
+    'company.sec_profile':     'Bedrijfsprofiel',
+    'company.sec_products':    'Producten & stoffen',
+    'company.sec_install':     'Installatie & apparatuur',
+    'company.sec_procedures':  'Procedures & protocollen',
+    'company.lbl_name':        'Bedrijfsnaam',
+    'company.lbl_location':    'Locatie / Vestiging',
+    'company.lbl_facility':    'Type inrichting',
+    'company.lbl_custom':      'Aangepast type (indien Anders)',
+    'company.lbl_regulation':  'Regelgeving / Classificatie',
+    'company.chk_brzo':        'BRZO-inrichting',
+    'company.chk_seveso':      'Seveso III',
+    'company.chk_reach':       'REACH-plichtig',
+    'company.lbl_authority':   'Vergunning / Bevoegd gezag',
+    'company.lbl_extra':       'Aanvullende bedrijfsinfo (vrij)',
+    'company.lbl_products':    'Aanwezige producten / stoffen',
+    'company.lbl_capacity':    'Maximale opslagcapaciteit',
+    'company.lbl_hazards':     'Bijzondere gevaarseigenschappen',
+    'company.lbl_tanktypes':   'Tanktypes aanwezig',
+    'company.lbl_pumps':       'Pompsystemen / typen',
+    'company.lbl_instruments': 'Meetsystemen / instrumentatie',
+    'company.lbl_dcs':         'DCS / SCADA systeem',
+    'company.lbl_tags':        'Specifieke apparatuurtags / naamgeving',
+    'company.lbl_reporting':   'Meldplicht bij incidenten',
+    'company.lbl_alarms':      'Alarmdrempels (richtlijn)',
+    'company.lbl_escalation':  'Escalatiestructuur',
+    'company.lbl_emergency':   'Calamiteitenorganisatie',
+    'company.lbl_procedures':  'Specifieke procedures / bijzonderheden',
+    'company.btn_save':        '✓ Profiel opslaan',
+    'company.btn_clear':       '✕ Wissen',
+    'company.btn_edit':        'Bewerken',
+    'company.lbl_linked':      'Gekoppeld bedrijfsprofiel',
+    'company.opt_none':        '— Geen bedrijfsprofiel koppelen —',
+    'company.ph_name':         'bijv. Terminal Noord BV',
+    'company.ph_location':     'bijv. Rotterdam, Botlek',
+    'company.ph_custom':       'Omschrijf het type inrichting',
+    'company.ph_authority':    'bijv. DCMR Milieudienst Rijnmond',
+    'company.ph_extra':        'Bijv. 24/7 operatie, havengebied, aangrenzende terminals...',
+    'company.ph_products':     'Bijv:\n- Biodiesel (ADR klasse 3, vlampunt >60°C)\n- Zwavelzuur 96% (ADR klasse 8, corrosief)',
+    'company.ph_capacity':     'bijv. 450.000 m³ totaal',
+    'company.ph_hazards':      'bijv. H2S-vorming, dampdruk, dampexplosie',
+    'company.ph_tanktypes':    'bijv. drijvende dak, vaste kap, koeltanks',
+    'company.ph_pumps':        'bijv. centrifugaalpompen, schroefpompen',
+    'company.ph_instruments':  'bijv. Enraf radar, Rosemount druk, Yokogawa flow',
+    'company.ph_dcs':          'bijv. Honeywell Experion, Siemens PCS7',
+    'company.ph_tags':         'Bijv: tanks = T-100 t/m T-240, pompen = P-01 t/m P-48',
+    'company.ph_reporting':    'bijv. ILT binnen 1u, DCMR binnen 4u',
+    'company.ph_alarms':       'bijv. >95% niveau = hoogalarm, <5% = laagalarm',
+    'company.ph_escalation':   'bijv. Operator → Shiftleader → Terminal Manager',
+    'company.ph_emergency':    'bijv. BHV, deelname GEVI, eigen brandweer',
+    'company.ph_procedures':   'Bijv: verplichte dubbele handtekening bij overpompen...',
+    'company.fac_bulk':        'Tankopslag (bulk vloeistoffen)',
+    'company.fac_chem':        'Tankopslag (chemie)',
+    'company.fac_waste':       'Afvalverwerking',
+    'company.fac_refinery':    'Olieraffinaderij',
+    'company.fac_lng':         'LNG/LPG terminal',
+    'company.fac_transfer':    'Overslagterminal',
+    'company.fac_other':       'Anders',
+    'company.fac_select':      '— Selecteer type —',
+    'company.preview_type':    'Type',
+    'company.preview_reg':     'Regelgeving',
+    'company.preview_prod':    'Producten',
+    'company.preview_esc':     'Escalatie',
+    'company.saved_on':        'Opgeslagen',
+    'sc.general':     'Algemeen',
+    'sc.label_title': 'Scenario-titel',
+    'sc.ph_title':    'bijv. Biodiesel inslag T-204',
+    'sc.label_org':   'Organisatie / Terminal',
+    'sc.ph_org':      'bijv. Terminal Noord BV',
+    'sc.label_desc':  'Beschrijving (voor trainer)',
+    'sc.ph_desc':     'Korte omschrijving en leerdoel...',
+    'sc.label_slid':  'Storyline module-ID',
+    'sc.ph_slid':     'bijv. terminal-noord',
+    'sc.label_sit':   'Beginsituatie (zichtbaar in AI-module bij start)',
+    'sc.ph_sit':      'bijv. T-204 · Biodiesel inslag MS Rosita · Pomp P-12 · Debiet 380 m³/h · Niveau 67% ↑',
+    'sc.sit_hint':    'Korte statuszin die onderaan het alarmpaneel verschijnt als beginsituatie voor de deelnemer.',
+
+    // API
+    'api.title':      'API-configuratie',
+    'api.badge':      'VERTROUWELIJK',
+    'api.desc':       'De API-sleutel wordt opgeslagen in de geëxporteerde JSON en automatisch ingelezen door de AI-module.',
+    'api.label':      'Anthropic API-sleutel',
+    'api.hint':       'Laat leeg als de deelnemer de sleutel zelf invoert bij het starten. Vul in om het startscherm voor de deelnemer te vereenvoudigen.',
+
+    // Fasen
+    'ph.title':       'Scenario-fasen',
+    'ph.add':         '＋ Fase',
+    'ph.none':        'Geen fasen. Voeg fasen toe via de knop hieronder.',
+    'ph.regie_lbl':   'Regieinstructie fase',
+    'ph.regie_hint':  'Beschrijf hoe Claude zich gedraagt in deze fase: welke sfeer, welke events, wanneer door naar de volgende fase.',
+    'ph.btn_regie':   '+ REGIE',
+    'ph.btn_regie_filled': '✎ REGIE',
+
+    // AI-gedrag / Rollen
+    'ai.title':       'AI-gedrag',
+    'ai.roles_title': 'AI-rollen',
+    'instructor.name':   'INSTRUCTEUR',
+    'instructor.badge':  'Systeemrol',
+    'instructor.tag':    'Primaire gespreksrol · Altijd aanwezig',
+    'instructor.desc':   'De Instructeur staat buiten het operationele scenario. Hij bewaakt de voortgang, helpt bij vastlopen, geeft hints bij lage moeilijkheidsgraad en leidt het scenario naar de debriefing. Operationele rollen hieronder spelen het verhaal — de Instructeur begeleidt de training.',
+    'instructor.label':  'Gedragsinstructie Instructeur (optioneel)',
+    'instructor.ph':     'Beschrijf de toon en aanpak van de Instructeur.\n\nVoorbeeld:\nNeutraal en professioneel. Spreekt de deelnemer direct aan met zijn naam. Stelt open vragen zonder de oplossing te verklappen. Nooit als onderdeel van het operationele scenario — altijd als begeleider van de training.',
+    'roles.op_title':    'Operationele rollen',
+    'roles.add':         '＋ Rol toevoegen',
+    'roles.hint':        'Definieer alle AI-sprekers die in de radiodialoog verschijnen als deel van het scenario. Claude speelt al deze rollen tegelijk.',
+    'roles.btn_behavior':  '+ GEDRAG',
+    'roles.btn_behavior_f': '\u270e GEDRAG',
+    'roles.behavior_lbl':   'Gedragsinstructie',
+    'roles.behavior_hint':  'Beschrijf hoe Claude deze rol speelt: toon, manier van communiceren, wanneer deze persoon in beeld komt en wat hij/zij wel of niet zegt.',
+    'roles.ph_type_dispatch':'Extern / Contractor',
+
+    'diff.label':        'Moeilijkheidsgraad (1 = laag · 5 = hoog)',
+    'ai.extra_label':    'Extra AI-instructies (optioneel)',
+    'ai.extra_ph':       'Aanvullende instructies: terminologie, locatienamen, bijzondere situaties...',
+    'tgl.escalation':    'Automatische escalatie bij gemiste camera',
+    'tgl.escalation_s':  'Scenario escaleert als kritieke camera\u2019s niet tijdig worden bekeken',
+    'tgl.debrief':       'Vertraagde debriefing (60 sec)',
+    'tgl.debrief_s':     'Wacht na scenario-einde voordat debriefing start',
+    'debrief.prompt_label': 'Debriefing-context (optioneel)',
+    'debrief.prompt_hint':  'Beschrijf de toon, scenario-specifieke aandachtspunten of organisatiewensen. De vaste beoordelingscriteria en scoringsnorm blijven altijd van kracht — dit veld verfijnt de focus en aanpak.',
+
+    // Knoppen scenario
+    'btn.save':          '✓ Opslaan in bibliotheek',
+    'btn.next_cam':      'Volgende: Camera’s →',
+
+    // Camera’s
+    'cam.title':         'Camera-locaties',
+    'cam.desc':          'Definieer camera\u2019s, visuele states en escalatielogica voor Storyline-koppeling.',
+    'cam.add':           '＋ Camera toevoegen',
+
+    // Deelnemer
+    'part.title':        'Deelnemer-configuratie',
+    'part.desc':         'Persoonsgegevens en sessie-instellingen.',
+    'part.section':      'Deelnemer',
+    'part.name':         'Naam deelnemer',
+    'part.ph_name':      'Voornaam Achternaam',
+    'part.role':         'Functie',
+    'part.ph_role':      'bijv. Controlekamer operator',
+    'part.org':          'Organisatie',
+    'part.ph_org':       'Bedrijfsnaam',
+    'part.loc':          'Locatie / Terminal',
+    'part.ph_loc':       'bijv. Terminal Noord',
+    'part.session':      'Sessie',
+    'part.date':         'Sessiedatum',
+    'part.id':           'Sessie-ID (automatisch)',
+    'part.note':         'Notitie voor trainer',
+    'part.ph_note':      'Bijzonderheden, leerdoelen, aandachtspunten...',
+
+    // Export
+    'exp.title':         'JSON Exporteren',
+    'exp.desc':          'Genereer het configuratiebestand voor de OIP Live Scenario module.',
+    'exp.validation':    'Validatie',
+    'exp.download':      '↓ Download scenario JSON',
+    'exp.expiry':        'Vervaldatum (optioneel)',
+    'exp.expiry_label':  'Geldig tot en met',
+    'exp.expiry_hint':   'Na deze datum weigert de Player het bestand. Laat leeg voor onbeperkte geldigheid.',
+    'exp.expiry_clear':  '✕ Datum wissen',
+    'exp.preview':       'JSON Preview',
+    'exp.preview_hint':  'Klik op "Download" om de JSON te genereren en hier te bekijken.',
+
+    // Confirm dialog
+    'conf.delete_title': 'Scenario verwijderen',
+    'conf.sure':         'Weet je het zeker?',
+    'conf.ok':           'Verwijderen',
+    'conf.cancel':       'Annuleren',
+
+    // Toast messages
+    'toast.saved':       'Scenario opgeslagen',
+    'toast.deleted':     'Scenario verwijderd',
+    'toast.exported':    'JSON gedownload',
+    'toast.imported':    'geïmporteerd',
+    'toast.imported_old':' (oud formaat — gemigreerd)',
+    'toast.invalid_json':'Ongeldig JSON-bestand',
+    'toast.fix_errors':  'Los verplichte velden op voor export',
+
+    // Validatie
+    'val.no_title':      'Geen scenario-titel ingevuld',
+    'val.no_phases':     'Geen fasen gedefinieerd',
+    'val.no_roles':      'Geen AI-rollen gedefinieerd — voeg minimaal één rol toe',
+    'val.no_org':        'Geen organisatie ingevuld',
+    'val.no_participant':'Geen deelnemer-naam ingevuld',
+    'val.ok':            '✓ Klaar voor export — alle vereiste velden ingevuld',
+    'val.cam_no_label':  'Camera %s: geen label',
+    'val.cam_no_ctx':    'Camera %s: geen AI-context',
+    'val.cam_one_state': 'Kritieke camera %s: slechts 1 state',
+    'val.role_no_name':  'Rol %s: geen naam ingevuld',
+  },
+
+  en: {
+    // Topbar
+    'top.new':        'New',
+    'top.saved':      'Saved',
+    'top.unsaved':    'Unsaved',
+    'top.no_org':     'No organisation',
+    'top.no_sc':      'No scenario loaded',
+
+    // Sidebar tabs
+    'tab.library':    'Lib',
+    'tab.scenario':   'Scenario',
+    'tab.company':    'Company',
+    'tab.participant':'Partic.',
+    'tab.export':     'Export',
+
+    // Bibliotheek
+    'lib.title':      'Scenario library',
+    'lib.desc':       'Create, load or duplicate scenarios for reuse. Stored in this browser.',
+    'lib.new':        '＋ New scenario',
+    'lib.import':     '↑ Import JSON',
+    'lib.empty_title':'No scenarios',
+    'lib.empty_desc': 'Create a new scenario or import an existing JSON file.',
+
+    // Scenario
+    'sc.title':       'Scenario definition',
+    'sc.desc':        'Story, phases and AI behaviour for this scenario.',
+    'company.title':  'Company profile',
+    'company.desc':   'Manage company-specific context for the AI. Link a profile to a scenario via the scenario tab.',
+    'company.tab_title':       'Company profile',
+    'company.sec_profile':     'Company profile',
+    'company.sec_products':    'Products & substances',
+    'company.sec_install':     'Installation & equipment',
+    'company.sec_procedures':  'Procedures & protocols',
+    'company.lbl_name':        'Company name',
+    'company.lbl_location':    'Location / Site',
+    'company.lbl_facility':    'Facility type',
+    'company.lbl_custom':      'Custom type (if Other)',
+    'company.lbl_regulation':  'Regulation / Classification',
+    'company.chk_brzo':        'BRZO facility',
+    'company.chk_seveso':      'Seveso III',
+    'company.chk_reach':       'REACH obligation',
+    'company.lbl_authority':   'Permit / Competent authority',
+    'company.lbl_extra':       'Additional company info (free text)',
+    'company.lbl_products':    'Products / substances present',
+    'company.lbl_capacity':    'Maximum storage capacity',
+    'company.lbl_hazards':     'Special hazard properties',
+    'company.lbl_tanktypes':   'Tank types present',
+    'company.lbl_pumps':       'Pump systems / types',
+    'company.lbl_instruments': 'Measurement systems / instrumentation',
+    'company.lbl_dcs':         'DCS / SCADA system',
+    'company.lbl_tags':        'Specific equipment tags / naming',
+    'company.lbl_reporting':   'Incident reporting obligations',
+    'company.lbl_alarms':      'Alarm thresholds (guideline)',
+    'company.lbl_escalation':  'Escalation structure',
+    'company.lbl_emergency':   'Emergency response organisation',
+    'company.lbl_procedures':  'Specific procedures / notes',
+    'company.btn_save':        '✓ Save profile',
+    'company.btn_clear':       '✕ Clear',
+    'company.btn_edit':        'Edit',
+    'company.lbl_linked':      'Linked company profile',
+    'company.opt_none':        '— No company profile linked —',
+    'company.ph_name':         'e.g. North Terminal Ltd',
+    'company.ph_location':     'e.g. Rotterdam, Botlek',
+    'company.ph_custom':       'Describe the facility type',
+    'company.ph_authority':    'e.g. Environment Agency',
+    'company.ph_extra':        'e.g. 24/7 operation, port area, adjacent terminals...',
+    'company.ph_products':     'e.g.\n- Biodiesel (ADR class 3, flashpoint >60°C)\n- Sulphuric acid 96% (ADR class 8, corrosive)',
+    'company.ph_capacity':     'e.g. 450,000 m³ total',
+    'company.ph_hazards':      'e.g. H2S formation, vapour pressure, vapour explosion',
+    'company.ph_tanktypes':    'e.g. floating roof, fixed roof, refrigerated',
+    'company.ph_pumps':        'e.g. centrifugal pumps, screw pumps',
+    'company.ph_instruments':  'e.g. Enraf radar, Rosemount pressure, Yokogawa flow',
+    'company.ph_dcs':          'e.g. Honeywell Experion, Siemens PCS7',
+    'company.ph_tags':         'e.g. tanks = T-100 to T-240, pumps = P-01 to P-48',
+    'company.ph_reporting':    'e.g. HSE within 1h, local authority within 4h',
+    'company.ph_alarms':       'e.g. >95% level = high alarm, <5% = low alarm',
+    'company.ph_escalation':   'e.g. Operator → Shift leader → Terminal Manager',
+    'company.ph_emergency':    'e.g. Emergency response team, fire brigade',
+    'company.ph_procedures':   'e.g. dual sign-off required for transfer operations...',
+    'company.fac_bulk':        'Tank storage (bulk liquids)',
+    'company.fac_chem':        'Tank storage (chemicals)',
+    'company.fac_waste':       'Waste processing',
+    'company.fac_refinery':    'Oil refinery',
+    'company.fac_lng':         'LNG/LPG terminal',
+    'company.fac_transfer':    'Transfer terminal',
+    'company.fac_other':       'Other',
+    'company.fac_select':      '— Select type —',
+    'company.preview_type':    'Type',
+    'company.preview_reg':     'Regulation',
+    'company.preview_prod':    'Products',
+    'company.preview_esc':     'Escalation',
+    'company.saved_on':        'Saved',
+    'sc.general':     'General',
+    'sc.label_title': 'Scenario title',
+    'sc.ph_title':    'e.g. Biodiesel loading T-204',
+    'sc.label_org':   'Organisation / Terminal',
+    'sc.ph_org':      'e.g. Terminal North Ltd',
+    'sc.label_desc':  'Description (for trainer)',
+    'sc.ph_desc':     'Brief description and learning objective...',
+    'sc.label_slid':  'Storyline module ID',
+    'sc.ph_slid':     'e.g. terminal-north',
+    'sc.label_sit':   'Initial situation (shown in AI module at start)',
+    'sc.ph_sit':      'e.g. T-204 · Biodiesel loading MS Rosita · Pump P-12 · Flow 380 m³/h · Level 67% ↑',
+    'sc.sit_hint':    'Short status line shown at the bottom of the alarm panel as the starting situation.',
+
+    // API
+    'api.title':      'API configuration',
+    'api.badge':      'CONFIDENTIAL',
+    'api.desc':       'The API key is stored in the exported JSON and automatically loaded by the AI module.',
+    'api.label':      'Anthropic API key',
+    'api.hint':       'Leave blank if the participant enters the key themselves at startup. Fill in to simplify the participant’s start screen.',
+
+    // Fasen
+    'ph.title':       'Scenario phases',
+    'ph.add':         '＋ Phase',
+    'ph.none':        'No phases. Add phases using the button below.',
+    'ph.regie_lbl':   'Direction note phase',
+    'ph.regie_hint':  'Describe how Claude behaves in this phase: atmosphere, events, when to move to the next phase.',
+    'ph.btn_regie':   '+ DIRECT',
+    'ph.btn_regie_filled': '✎ DIRECT',
+
+    // AI-gedrag / Rollen
+    'ai.title':       'AI behaviour',
+    'ai.roles_title': 'AI roles',
+    'instructor.name':   'INSTRUCTOR',
+    'instructor.badge':  'System role',
+    'instructor.tag':    'Primary voice · Always present',
+    'instructor.desc':   'The Instructor stands outside the operational scenario. They monitor progress, help when stuck, give hints at low difficulty and guide the scenario toward the debrief. Operational roles below play the story — the Instructor facilitates the training.',
+    'instructor.label':  'Instructor behaviour (optional)',
+    'instructor.ph':     'Describe the tone and approach of the Instructor.\n\nExample:\nNeutral and professional. Addresses the participant by name. Asks open questions without giving away the answer. Never part of the operational scenario — always the training facilitator.',
+    'roles.op_title':    'Operational roles',
+    'roles.add':         '＋ Add role',
+    'roles.hint':        'Define all AI voices that appear in the radio dialogue as part of the scenario. Claude plays all these roles simultaneously.',
+    'roles.btn_behavior':  '+ BEHAVIOUR',
+    'roles.btn_behavior_f': '\u270e BEHAVIOUR',
+    'roles.behavior_lbl':   'Behaviour note',
+    'roles.behavior_hint':  'Describe how Claude plays this role: tone, communication style, when this person appears and what they do or do not say.',
+    'roles.ph_type_dispatch':'External / Contractor',
+
+    'diff.label':        'Difficulty (1 = low · 5 = high)',
+    'ai.extra_label':    'Additional AI instructions (optional)',
+    'ai.extra_ph':       'Additional instructions: terminology, location names, special situations...',
+    'tgl.escalation':    'Auto-escalation on missed camera',
+    'tgl.escalation_s':  'Scenario escalates if critical cameras are not viewed in time',
+    'tgl.debrief':       'Delayed debrief (60 sec)',
+    'tgl.debrief_s':     'Wait after scenario end before starting debrief',
+    'debrief.prompt_label': 'Debrief context (optional)',
+    'debrief.prompt_hint':  'Describe the tone, scenario-specific focus areas or organisational preferences for the debrief. The fixed assessment criteria and scoring standard always apply — this field refines focus and approach.',
+
+    // Knoppen scenario
+    'btn.save':          '✓ Save to library',
+    'btn.next_cam':      'Next: Cameras →',
+
+    // Camera’s
+    'cam.title':         'Camera locations',
+    'cam.desc':          'Define cameras, visual states and escalation logic for Storyline integration.',
+    'cam.add':           '＋ Add camera',
+
+    // Deelnemer
+    'part.title':        'Participant configuration',
+    'part.desc':         'Personal details and session settings.',
+    'part.section':      'Participant',
+    'part.name':         'Participant name',
+    'part.ph_name':      'First Last',
+    'part.role':         'Job title',
+    'part.ph_role':      'e.g. Control room operator',
+    'part.org':          'Organisation',
+    'part.ph_org':       'Company name',
+    'part.loc':          'Location / Terminal',
+    'part.ph_loc':       'e.g. Terminal North',
+    'part.session':      'Session',
+    'part.date':         'Session date',
+    'part.id':           'Session ID (automatic)',
+    'part.note':         'Trainer note',
+    'part.ph_note':      'Special notes, learning objectives, points of attention...',
+
+    // Export
+    'exp.title':         'Export JSON',
+    'exp.desc':          'Generate the configuration file for the OIP Live Scenario module.',
+    'exp.validation':    'Validation',
+    'exp.download':      '↓ Download scenario JSON',
+    'exp.expiry':        'Expiry date (optional)',
+    'exp.expiry_label':  'Valid until',
+    'exp.expiry_hint':   'After this date the Player will refuse this file. Leave empty for unlimited validity.',
+    'exp.expiry_clear':  '✕ Clear date',
+    'exp.preview':       'JSON Preview',
+    'exp.preview_hint':  'Click "Download" to generate the JSON and preview it here.',
+
+    // Confirm dialog
+    'conf.delete_title': 'Delete scenario',
+    'conf.sure':         'Are you sure?',
+    'conf.ok':           'Delete',
+    'conf.cancel':       'Cancel',
+
+    // Toast messages
+    'toast.saved':       'Scenario saved',
+    'toast.deleted':     'Scenario deleted',
+    'toast.exported':    'JSON downloaded',
+    'toast.imported':    'imported',
+    'toast.imported_old':' (legacy format — migrated)',
+    'toast.invalid_json':'Invalid JSON file',
+    'toast.fix_errors':  'Fix required fields before export',
+
+    // Validatie
+    'val.no_title':      'No scenario title entered',
+    'val.no_phases':     'No phases defined',
+    'val.no_roles':      'No AI roles defined — add at least one role',
+    'val.no_org':        'No organisation entered',
+    'val.no_participant':'No participant name entered',
+    'val.ok':            '✓ Ready for export — all required fields filled in',
+    'val.cam_no_label':  'Camera %s: no label',
+    'val.cam_no_ctx':    'Camera %s: no AI context',
+    'val.cam_one_state': 'Critical camera %s: only 1 state',
+    'val.role_no_name':  'Role %s: no name entered',
+  }
+};
+
+function t(key, ...args) {
+  let s = T[lang]?.[key] || T['nl'][key] || key;
+  args.forEach(a => { s = s.replace('%s', a); });
+  return s;
+}
+
+function initLang(l) {
+  lang = l;
+  localStorage.setItem('oip_ctrl_lang', l);
+  document.getElementById('lang-overlay').style.display = 'none';
+  document.getElementById('lang-switch').textContent = l.toUpperCase();
+  applyLang();
+  populate();
+  renderLib();
+  topbar();
+}
+
+function showLangOverlay() {
+  document.getElementById('lang-overlay').style.display = 'flex';
+}
+
+function applyLang() {
+  if (!document.getElementById('top-org')) return; // DOM nog niet klaar
+
+  // Topbar
+  document.getElementById('top-org').textContent = cur.organization||cur.participant?.org || t('top.no_org');
+  document.getElementById('top-sc').textContent  = cur.title || t('top.no_sc');
+
+  // Sidebar tab-labels — via data-tab attribuut, onafhankelijk van volgorde
+  const tabLabelKeys = {
+    library:     'tab.library',
+    scenario:    'tab.scenario',
+    company:     'tab.company',
+    participant: 'tab.participant',
+    export:      'tab.export',
+  };
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+    const key = tabLabelKeys[btn.getAttribute('data-tab')];
+    const tl  = btn.querySelector('.tl');
+    if (key && tl) tl.textContent = t(key);
+  });
+
+  // Panel headers (altijd, ook als panel display:none is)
+  const panels = {
+    'panel-library':     ['lib.title',  'lib.desc'],
+    'panel-scenario':    ['sc.title',   'sc.desc'],
+    'panel-company':     ['company.title', 'company.desc'],
+    'panel-participant': ['part.title', 'part.desc'],
+    'panel-export':      ['exp.title',  'exp.desc'],
+  };
+  Object.entries(panels).forEach(([id, [h2k, pk]]) => {
+    const p = document.getElementById(id);
+    if (!p) return;
+    const h2 = p.querySelector('.ph h2');
+    const ph = p.querySelector('.ph p');
+    if (h2) h2.textContent = t(h2k);
+    if (ph) ph.textContent = t(pk);
+  });
+
+  // Sectietitels via data-i18n attribuut — onafhankelijk van volgorde
+  document.querySelectorAll('.fst[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const btn = el.querySelector('button');
+    const txt = t(key);
+    if (btn) {
+      // Bewaar de knop — update alleen de tekstknoop
+      const textNodes = [...el.childNodes].filter(n => n.nodeType === 3);
+      if (textNodes.length) {
+        textNodes[0].textContent = txt + ' ';
+      } else {
+        el.insertBefore(document.createTextNode(txt + ' '), btn);
+      }
+    } else {
+      el.textContent = txt;
+    }
+  });
+
+  // API badge
+  const apiBadge = document.querySelector('.fst [style*="amber"]');
+  if (apiBadge) apiBadge.textContent = t('api.badge');
+
+  // API toelichting
+  const apiDesc = document.querySelector('[style*="border-left:3px solid var(--amber)"]');
+  if (apiDesc) apiDesc.textContent = t('api.desc');
+
+  // API sleutel hint
+  const apiHint = document.querySelector('#f-apikey')?.closest('.fd')?.querySelector('div[style]');
+  if (apiHint) apiHint.textContent = t('api.hint');
+
+  // Bibliotheek knoppen
+  document.querySelector('[onclick="newScenario()"]')?.querySelectorAll !== undefined &&
+    document.querySelectorAll('[onclick="newScenario()"]').forEach(b => b.textContent = t('lib.new'));
+  document.querySelector('[onclick="importJSON()"]') &&
+    (document.querySelector('[onclick="importJSON()"]').textContent = t('lib.import'));
+
+  // Placeholders
+  const phs = {
+    'f-title': 'sc.ph_title', 'f-org':  'sc.ph_org',  'f-desc': 'sc.ph_desc',
+    'f-slid':  'sc.ph_slid',  'f-sit':  'sc.ph_sit',   'f-aiex': 'ai.extra_ph',
+    'f-pn':    'part.ph_name','f-pr':   'part.ph_role','f-po':   'part.ph_org',
+    'f-pl':    'part.ph_loc', 'f-pnote':'part.ph_note',
+  };
+  Object.entries(phs).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) el.placeholder = t(key);
+  });
+
+  // Labels
+  const lbls = {
+    'f-title':  'sc.label_title', 'f-org':    'sc.label_org',  'f-desc':   'sc.label_desc',
+    'f-slid':   'sc.label_slid', 'f-sit':    'sc.label_sit',
+    'f-apikey': 'api.label',      'f-pn':     'part.name',     'f-pr':     'part.role',
+    'f-po':     'part.org',       'f-pl':     'part.loc',       'f-pd':     'part.date',
+    'f-ps':     'part.id',        'f-pnote':  'part.note',      'f-diff':   'diff.label',
+    'f-aiex':   'ai.extra_label',
+  };
+  Object.entries(lbls).forEach(([id, key]) => {
+    const field = document.getElementById(id);
+    if (!field) return;
+    const lbl = field.closest('.fd')?.querySelector('label');
+    if (lbl) lbl.textContent = t(key);
+  });
+
+  // Toggles
+  setToggleText('t-esc', t('tgl.escalation'), t('tgl.escalation_s'));
+  setToggleText('t-dbd', t('tgl.debrief'),    t('tgl.debrief_s'));
+
+  // Instructor kaart — via data-i18n attributen
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    // Sla .fst elementen over (die worden apart afgehandeld met knoppen)
+    if (el.classList.contains('fst')) return;
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+
+  // Instructor gedragsinstructie placeholder (textarea heeft geen textContent)
+  const instrTa  = document.getElementById('instructor-behavior');
+  const instrLbl = instrTa?.closest('.fd')?.querySelector('label');
+  if (instrLbl) instrLbl.textContent = t('instructor.label');
+  if (instrTa)  instrTa.placeholder  = t('instructor.ph');
+
+  // Rollen hint
+  const rolesHint = document.querySelector('#roles-list')?.previousElementSibling;
+  if (rolesHint?.classList.contains('hint-text')) rolesHint.textContent = t('roles.hint');
+
+  // Situatie hint
+  const sitHint = document.querySelector('#f-sit')?.closest('.fd')?.querySelector('div[style]');
+  if (sitHint) sitHint.textContent = t('sc.sit_hint');
+
+  // Export knoppen en preview
+  const expDl = document.querySelector('[onclick="doExport()"]');
+  if (expDl) expDl.textContent = t('exp.download');
+  const expPrev = document.getElementById('json-pre');
+  if (expPrev && (expPrev.textContent.includes('Klik') || expPrev.textContent.includes('Click'))) {
+    expPrev.textContent = t('exp.preview_hint');
+  }
+  const expValHdr = document.querySelector('#panel-export .fst');
+  if (expValHdr) expValHdr.textContent = t('exp.validation');
+  const expFsts = document.querySelectorAll('#panel-export .fst');
+  if (expFsts[1]) expFsts[1].textContent = t('exp.expiry');
+  if (expFsts[2]) expFsts[2].textContent = t('exp.preview');
+
+  // Vervaldatum veld labels
+  const expLbl = document.getElementById('exp-expiry-label');
+  if (expLbl) expLbl.textContent = t('exp.expiry_label');
+  const expHint = document.getElementById('exp-expiry-hint');
+  if (expHint) expHint.textContent = t('exp.expiry_hint');
+  const expClr = document.getElementById('exp-expiry-clear');
+  if (expClr) expClr.textContent = t('exp.expiry_clear');
+
+  // Camera knop
+
+  // Fase-toevoegen knop
+  const addPhaseBtn = document.getElementById('btn-add-phase');
+  if (addPhaseBtn) addPhaseBtn.textContent = (lang==='en' ? '+ Phase' : '+ Fase');
+
+  // Opslaan knoppen
+  document.querySelectorAll('[onclick="saveScenario()"]').forEach(b => b.textContent = t('btn.save'));
+
+  // Volgende knop — alleen de .btn-row knop, niet de sidebar-knop
+  document.querySelectorAll('.btn-row button[onclick*="cameras"]').forEach(b => b.textContent = t('btn.next_cam'));
+
+  // Confirm dialog
+  const confOk     = document.getElementById('conf-ok');
+  const confCancel = document.querySelector('[onclick="closeConf()"]');
+  if (confOk)     confOk.textContent     = t('conf.ok');
+  if (confCancel) confCancel.textContent = t('conf.cancel');
+
+  // Vertaal opgeslagen fase-labels naar de actieve taal
+  const phaseMap = {
+    en: { 'Oriëntatie':'Orientation', 'Eerste signalen':'First signals', 'Escalatie':'Escalation', 'Afhandeling':'Resolution' },
+    nl: { 'Orientation':'Oriëntatie', 'First signals':'Eerste signalen', 'Escalation':'Escalatie', 'Resolution':'Afhandeling' }
+  };
+  if (cur.phases) {
+    cur.phases.forEach(p => {
+      const translated = phaseMap[lang]?.[p.label];
+      if (translated) p.label = translated;
+    });
+  }
+
+  // Re-render fasen en rollen
+  renderPhases();
+  renderRoles();
+  applyCompanyLang();
+}
+
+function applyCompanyLang() {
+  // Labels
+  const labelMap = [
+    ['cp-name',          'company.lbl_name'],
+    ['cp-location',      'company.lbl_location'],
+    ['cp-facility-type', 'company.lbl_facility'],
+    ['cp-facility-custom','company.lbl_custom'],
+    ['cp-authority',     'company.lbl_authority'],
+    ['cp-extra-profile', 'company.lbl_extra'],
+    ['cp-products',      'company.lbl_products'],
+    ['cp-capacity',      'company.lbl_capacity'],
+    ['cp-hazards',       'company.lbl_hazards'],
+    ['cp-tank-types',    'company.lbl_tanktypes'],
+    ['cp-pumps',         'company.lbl_pumps'],
+    ['cp-instruments',   'company.lbl_instruments'],
+    ['cp-dcs',           'company.lbl_dcs'],
+    ['cp-tags',          'company.lbl_tags'],
+    ['cp-reporting',     'company.lbl_reporting'],
+    ['cp-alarms',        'company.lbl_alarms'],
+    ['cp-escalation',    'company.lbl_escalation'],
+    ['cp-emergency',     'company.lbl_emergency'],
+    ['cp-procedures',    'company.lbl_procedures'],
+  ];
+  labelMap.forEach(([id, key]) => setLabel(id, t(key)));
+
+  // Placeholders
+  const phMap = [
+    ['cp-name',          'company.ph_name'],
+    ['cp-location',      'company.ph_location'],
+    ['cp-facility-custom','company.ph_custom'],
+    ['cp-authority',     'company.ph_authority'],
+    ['cp-extra-profile', 'company.ph_extra'],
+    ['cp-products',      'company.ph_products'],
+    ['cp-capacity',      'company.ph_capacity'],
+    ['cp-hazards',       'company.ph_hazards'],
+    ['cp-tank-types',    'company.ph_tanktypes'],
+    ['cp-pumps',         'company.ph_pumps'],
+    ['cp-instruments',   'company.ph_instruments'],
+    ['cp-dcs',           'company.ph_dcs'],
+    ['cp-tags',          'company.ph_tags'],
+    ['cp-reporting',     'company.ph_reporting'],
+    ['cp-alarms',        'company.ph_alarms'],
+    ['cp-escalation',    'company.ph_escalation'],
+    ['cp-emergency',     'company.ph_emergency'],
+    ['cp-procedures',    'company.ph_procedures'],
+  ];
+  phMap.forEach(([id, key]) => setPh(id, t(key)));
+
+  // Regelgeving checkboxes
+  const chkBrzo   = document.getElementById('cp-brzo')?.closest('label');
+  const chkSeveso = document.getElementById('cp-seveso')?.closest('label');
+  const chkReach  = document.getElementById('cp-reach')?.closest('label');
+  if (chkBrzo)   chkBrzo.lastChild.textContent   = ' ' + t('company.chk_brzo');
+  if (chkSeveso) chkSeveso.lastChild.textContent = ' ' + t('company.chk_seveso');
+  if (chkReach)  chkReach.lastChild.textContent  = ' ' + t('company.chk_reach');
+
+  // Regelgeving label
+  const regLabel = document.getElementById('cp-brzo')?.closest('.fd')?.querySelector('label');
+  if (regLabel) regLabel.textContent = t('company.lbl_regulation');
+
+  // Facility type dropdown opties
+  const sel = document.getElementById('cp-facility-type');
+  if (sel) {
+    const opts = [
+      ['', 'company.fac_select'],
+      ['Tankopslag (bulk vloeistoffen)', 'company.fac_bulk'],
+      ['Tankopslag (chemie)',           'company.fac_chem'],
+      ['Afvalverwerking',               'company.fac_waste'],
+      ['Olieraffinaderij',              'company.fac_refinery'],
+      ['LNG/LPG terminal',              'company.fac_lng'],
+      ['Overslagterminal',              'company.fac_transfer'],
+      ['Anders',                        'company.fac_other'],
+    ];
+    [...sel.options].forEach((opt, i) => { if (opts[i]) opt.text = t(opts[i][1]); });
+  }
+
+  // Knoppen in panel-company
+  document.querySelectorAll('[onclick="saveCompanyProfile()"]').forEach(b => b.textContent = t('company.btn_save'));
+  document.querySelectorAll('[onclick="clearCompanyForm()"]').forEach(b => b.textContent = t('company.btn_clear'));
+
+  // Dropdown label in scenario-panel
+  const linkedLabel = document.querySelector('#profile-link-row label');
+  if (linkedLabel) linkedLabel.textContent = t('company.lbl_linked');
+
+  // Vernieuw opties in de koppel-dropdown
+  refreshProfileDropdown();
+  renderCompanySavedBar();
+}
+
+function setText(panelId, selector, text) {
+  const el = document.getElementById(panelId)?.querySelector(selector);
+  if (el) el.textContent = text;
+}
+function setBtn(id, sel, text) {
+  const el = document.querySelector(sel);
+  if (el) el.textContent = text;
+}
+function setPh(id, ph) {
+  const el = document.getElementById(id);
+  if (el) el.placeholder = ph;
+}
+function setLabel(fieldId, text) {
+  const field = document.getElementById(fieldId);
+  if (!field) return;
+  // Zoek het label-element dat direct vóór het veld staat
+  const parent = field.closest('.fd');
+  if (parent) {
+    const lbl = parent.querySelector('label');
+    if (lbl) lbl.textContent = text;
+  }
+}
+function setToggleText(tglId, main, sub) {
+  const btn = document.getElementById(tglId);
+  if (!btn) return;
+  const row = btn.closest('.tr');
+  if (!row) return;
+  const mainEl = row.querySelector('.trl');
+  const subEl  = row.querySelector('.trs');
+  if (mainEl) mainEl.textContent = main;
+  if (subEl)  subEl.textContent  = sub;
+}
+// INIT
+document.addEventListener('DOMContentLoaded',()=>{
+  sv('f-pd', new Date().toISOString().slice(0,10));
+  sv('f-ps', genSid());
+  renderLib(); topbar();
+  refreshProfileDropdown();
+
+  // Vorige taalkeuze ophalen — markeer de knop maar toon altijd de overlay
+  const savedLang = localStorage.getItem('oip_ctrl_lang');
+  if (savedLang && ['nl','en'].includes(savedLang)) {
+    lang = savedLang;
+    // Markeer de vorige keuze visueel in de overlay
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      const isActive = (savedLang === 'nl' && btn.textContent.includes('Nederlands'))
+                    || (savedLang === 'en' && btn.textContent.includes('English'));
+      btn.style.borderColor = isActive ? 'var(--cyan)' : '';
+      btn.style.color       = isActive ? 'var(--cyan)' : '';
+      btn.style.background  = isActive ? 'var(--cyan-dim)' : '';
+    });
+    document.getElementById('lang-switch').textContent = savedLang.toUpperCase();
+  }
+});
+</script>
+</body>
+</html>
