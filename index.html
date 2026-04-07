@@ -1613,14 +1613,15 @@ function buildJSON(){
   const instructorPrompt = `SYSTEEMROL — INSTRUCTEUR (altijd aanwezig, staat buiten het scenario):
 De Instructeur is een vaste begeleiderrol die NIET operationeel deelneemt aan het scenario. Hij spreekt de deelnemer direct aan, bewaakt de voortgang, en leidt het scenario naar de debriefing.
 Taken van de Instructeur:
-- Bewaakt fase-overgangen en geeft het sein voor de volgende fase
+- Bewaakt fase-overgangen en stuurt het [FASE:n] token wanneer de overgang van toepassing is
 - Geeft bij lage moeilijkheidsgraad (difficulty 1-2) subtiele hints als de deelnemer vastloopt of kritieke stappen mist
 - Stelt open begeleidingsvragen zonder de oplossing weg te geven
 - Sluit het scenario netjes af richting debriefing met [SCENARIO-EINDE]
 - Verschijnt NOOIT als operationele stem in het radioscenario
 ${instrBhv ? `\nSpecifieke instructies voor deze training:\n${instrBhv}` : ''}
 
-De Instructeur is de ENIGE rol die hints mag geven. Operationele rollen (zie hieronder) geven nooit hints, ongeacht de moeilijkheidsgraad.`;
+De Instructeur is de ENIGE rol die hints mag geven. Operationele rollen (zie hieronder) geven nooit hints, ongeacht de moeilijkheidsgraad.
+Het [FASE:n] token wordt door jou als systeem gestuurd — het is geen dialoogzin en geen rolnaam. Zet het altijd op een aparte regel.`;
 
   // Zorg voor array-formaat operationele rollen
   const roles = Array.isArray(cur.roles) ? cur.roles : [
@@ -1651,7 +1652,10 @@ De Instructeur is de ENIGE rol die hints mag geven. Operationele rollen (zie hie
         ? `\nCAMERA-STATES BIJ FASE-OVERGANG:\n${camStateLines}`
         : '';
       // Altijd opnemen — ook als dir leeg is, zodat Claude elke fase kent
-      const body = dir || '(geen regiebeschrijving — speel de situatie realistisch voort en wacht op het juiste deelnemergedrag voor de overgang)';
+      const isLast = i === (cur.phases||[]).length - 1;
+      const nextToken = isLast ? '[SCENARIO-EINDE]' : `[FASE:${i+2}]`;
+      const fallback = `Geen specifieke regiebeschrijving. Speel de situatie van deze fase realistisch voort op basis van de eerdere dialoog. Stuur ${nextToken} op een aparte regel zodra de deelnemer adequaat heeft gereageerd en deze fase is afgerond.`;
+      const body = dir || fallback;
       return `=== FASE ${i+1}: ${p.label||'Fase '+(i+1)} (indicatief ${p.dur||120}s) ===\n${body}${camBlock}`;
     })
     .join('\n\n');
@@ -1671,11 +1675,13 @@ De Instructeur is de ENIGE rol die hints mag geven. Operationele rollen (zie hie
     const camNote = hasCamStates
       ? '\nHet token triggert ook de camera-state wijzigingen in Storyline.'
       : '';
-    return `\n\nFASE-OVERGANGEN:
+    return `\n\nFASE-OVERGANGEN — KRITIEKE SPELREGEL:
+Jij (het AI-systeem) stuurt zelf het fase-token. Het is geen dialoogzin en staat nooit in de mond van een rol.
 De beginsituatie (fase 1) is al actief bij scenario-start — stuur NOOIT [FASE:1] bij het openingsbericht.
-Stuur een fase-token UITSLUITEND bij de start van een NIEUWE fase. Sla GEEN fasen over:
+Stuur een fase-token UITSLUITEND wanneer de overgang van toepassing is — op basis van het gedrag van de deelnemer, niet op basis van tijd.
+Sla GEEN fasen over:
 ${phaseList}
-Zet het token ALTIJD op een aparte regel, nooit inline in een dialoogzin.${camNote}`;
+Zet het token ALTIJD als laatste regel van je beurt, op een volledig aparte regel.${camNote}`;
   })();
 
   const companyContext = buildCompanyContextPrompt(cur.linkedProfileId);
