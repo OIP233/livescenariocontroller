@@ -1638,6 +1638,8 @@ De Instructeur is de ENIGE rol die hints mag geven. Operationele rollen (zie hie
     }).join('\n');
 
   // Fase-instructieblok + camera-states per fase
+  // Elke fase wordt altijd opgenomen (ook zonder regiebeschrijving),
+  // zodat Claude naam en duur van elke fase kent.
   const phaseDirections = (cur.phases||[])
     .map((p,i)=>{
       const camStateLines = (cur.cameras||[])
@@ -1648,20 +1650,22 @@ De Instructeur is de ENIGE rol die hints mag geven. Operationele rollen (zie hie
       const camBlock = camStateLines
         ? `\nCAMERA-STATES BIJ FASE-OVERGANG:\n${camStateLines}`
         : '';
-      if (!dir && !camBlock) return null;
-      return `=== FASE ${i+1}: ${p.label||'Fase '+(i+1)} (indicatief ${p.dur||120}s) ===\n${dir}${camBlock}`;
+      // Altijd opnemen — ook als dir leeg is, zodat Claude elke fase kent
+      const body = dir || '(geen regiebeschrijving — speel de situatie realistisch voort en wacht op het juiste deelnemergedrag voor de overgang)';
+      return `=== FASE ${i+1}: ${p.label||'Fase '+(i+1)} (indicatief ${p.dur||120}s) ===\n${body}${camBlock}`;
     })
-    .filter(Boolean)
     .join('\n\n');
 
   // Fase-overgang instructie voor Instructeur
-  // Altijd meesturen — de [FASE:n] tokens zijn de primaire trigger voor fase-overgangen,
+  // Altijd meesturen — [FASE:n] tokens zijn de primaire trigger voor fase-overgangen,
   // ongeacht of er Storyline camera-states zijn geconfigureerd.
   const hasCamStates = (cur.cameras||[]).some(cam =>
     (cur.phases||[]).some(p => cam.phaseStates?.[p.id])
   );
   const phaseTokenInstruction = (() => {
-    const phaseList = (cur.phases||[]).slice(1).map((p,i) =>
+    const phases = cur.phases || [];
+    if (phases.length <= 1) return '';
+    const phaseList = phases.slice(1).map((p,i) =>
       `- Overgang naar fase ${i+2} (${p.label||'Fase '+(i+2)}): stuur [FASE:${i+2}] op een aparte regel`
     ).join('\n');
     const camNote = hasCamStates
@@ -1671,7 +1675,7 @@ De Instructeur is de ENIGE rol die hints mag geven. Operationele rollen (zie hie
 De beginsituatie (fase 1) is al actief bij scenario-start — stuur NOOIT [FASE:1] bij het openingsbericht.
 Stuur een fase-token UITSLUITEND bij de start van een NIEUWE fase. Sla GEEN fasen over:
 ${phaseList}
-Zet het token ALTIJD alleen op een aparte regel.${camNote}`;
+Zet het token ALTIJD op een aparte regel, nooit inline in een dialoogzin.${camNote}`;
   })();
 
   const companyContext = buildCompanyContextPrompt(cur.linkedProfileId);
