@@ -692,14 +692,6 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
             <div><div class="trl">Vertraagde debriefing (60 sec)</div><div class="trs">Wacht na scenario-einde voordat debriefing start</div></div>
             <button class="tgl" id="t-dbd" onclick="flipTgl(this,'debriefDelay')"></button>
           </div>
-          <div class="fr fr1" style="margin-top:10px">
-            <div class="fd">
-              <label data-i18n="debrief.prompt_label">Debriefing-context (optioneel)</label>
-              <div class="hint-text" style="margin-bottom:6px" data-i18n="debrief.prompt_hint">Beschrijf de toon, scenario-specifieke aandachtspunten of organisatiewensen voor de debriefing. De vaste beoordelingscriteria en scoringsnorm blijven altijd van kracht — dit veld verfijnt de focus en aanpak.</div>
-              <textarea id="f-debrief-prompt" rows="4" oninput="dirty()"
-                placeholder="Optioneel: toon, aandachtspunten, organisatiespecifieke context voor de debriefing.&#10;&#10;Voorbeeld:&#10;Spreek de deelnemer aan in een coachende toon. Let extra op het LMRA-moment en de communicatie met de shiftleider. Gebruik de naam T-204 consistent. Sluit altijd af met wat goed ging."></textarea>
-            </div>
-          </div>
         </div>
 
         <div class="btn-row">
@@ -1257,7 +1249,6 @@ function populate(){
   sv('f-aiex', cur.aiExtra);
   sv('instructor-behavior', cur.instructorBehavior||'');
   setTgl('t-dbd', !!cur.settings?.debriefDelay);
-  sv('f-debrief-prompt', cur.debriefingPrompt||'');
   refreshProfileDropdown();
   if (cur.linkedProfileId) {
     const sel = document.getElementById('f-scenario-profile');
@@ -1664,19 +1655,23 @@ De Instructeur is de ENIGE rol die hints mag geven. Operationele rollen (zie hie
     .join('\n\n');
 
   // Fase-overgang instructie voor Instructeur
+  // Altijd meesturen — de [FASE:n] tokens zijn de primaire trigger voor fase-overgangen,
+  // ongeacht of er Storyline camera-states zijn geconfigureerd.
   const hasCamStates = (cur.cameras||[]).some(cam =>
     (cur.phases||[]).some(p => cam.phaseStates?.[p.id])
   );
   const phaseTokenInstruction = (() => {
-    if (!hasCamStates) return '';
     const phaseList = (cur.phases||[]).slice(1).map((p,i) =>
       `- Overgang naar fase ${i+2} (${p.label||'Fase '+(i+2)}): stuur [FASE:${i+2}] op een aparte regel`
     ).join('\n');
-    return `\n\nFASE-OVERGANGEN EN CAMERA-STATES:
+    const camNote = hasCamStates
+      ? '\nHet token triggert ook de camera-state wijzigingen in Storyline.'
+      : '';
+    return `\n\nFASE-OVERGANGEN:
 De beginsituatie (fase 1) is al actief bij scenario-start — stuur NOOIT [FASE:1] bij het openingsbericht.
 Stuur een fase-token UITSLUITEND bij de start van een NIEUWE fase. Sla GEEN fasen over:
 ${phaseList}
-Het token triggert de camera-state wijzigingen in Storyline. Zet het token ALTIJD alleen op een aparte regel.`;
+Zet het token ALTIJD alleen op een aparte regel.${camNote}`;
   })();
 
   const companyContext = buildCompanyContextPrompt(cur.linkedProfileId);
@@ -2048,8 +2043,6 @@ var T = {
     'tgl.escalation_s':  'Scenario escaleert als kritieke camera\u2019s niet tijdig worden bekeken',
     'tgl.debrief':       'Vertraagde debriefing (60 sec)',
     'tgl.debrief_s':     'Wacht na scenario-einde voordat debriefing start',
-    'debrief.prompt_label': 'Debriefing-context (optioneel)',
-    'debrief.prompt_hint':  'Beschrijf de toon, scenario-specifieke aandachtspunten of organisatiewensen. De vaste beoordelingscriteria en scoringsnorm blijven altijd van kracht — dit veld verfijnt de focus en aanpak.',
 
     // Knoppen scenario
     'btn.save':          '✓ Opslaan in bibliotheek',
@@ -2264,8 +2257,6 @@ var T = {
     'tgl.escalation_s':  'Scenario escalates if critical cameras are not viewed in time',
     'tgl.debrief':       'Delayed debrief (60 sec)',
     'tgl.debrief_s':     'Wait after scenario end before starting debrief',
-    'debrief.prompt_label': 'Debrief context (optional)',
-    'debrief.prompt_hint':  'Describe the tone, scenario-specific focus areas or organisational preferences for the debrief. The fixed assessment criteria and scoring standard always apply — this field refines focus and approach.',
 
     // Knoppen scenario
     'btn.save':          '✓ Save to library',
