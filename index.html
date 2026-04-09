@@ -27,6 +27,8 @@
   --blue-dim:    #102840;
   --cyan:        #20d8ff;
   --cyan-dim:    #082838;
+  --purple:      #a78bfa;
+  --purple-dim:  #2e1e4e;
   --mono: 'Share Tech Mono', monospace;
   --sans: 'Barlow', sans-serif;
   --cond: 'Barlow Condensed', sans-serif;
@@ -260,6 +262,59 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 .pdir-ta::placeholder { color:var(--text-dim); }
 
 /* ── INSTRUCTEUR (vaste systeemrol) ──────────────── */
+.briefing-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--purple, #9b8fff);
+  border-radius: 6px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.briefing-card.has-dir { border-left: 3px solid var(--purple, #9b8fff); opacity:1; }
+.briefing-hdr {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg4, var(--bg3));
+  border-bottom: 1px solid var(--border);
+}
+.briefing-badge {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  background: var(--purple, #9b8fff); color: #fff;
+  border-radius: 3px; padding: 2px 6px;
+}
+.briefing-name {
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  color: var(--text); letter-spacing: .5px; text-transform: uppercase;
+}
+.briefing-tag {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--purple, #9b8fff); opacity: .8; margin-left: auto;
+}
+.briefing-desc {
+  font-size: 12px; color: var(--text-dim);
+  padding: 8px 14px 0; line-height: 1.5;
+}
+.briefing-body { padding: 12px 14px 14px; }
+.briefing-body .fd label { color: var(--purple, #9b8fff); }
+.briefing-body textarea {
+  width: 100%; box-sizing: border-box;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--text);
+  font-size: 12px; font-family: inherit;
+  padding: 8px 10px; resize: vertical; min-height: 80px;
+}
+.briefing-body textarea:focus { outline: none; border-color: var(--purple, #9b8fff); }
+.briefing-dir-toggle {
+  background: none; border: 1px solid var(--border);
+  border-radius: 4px; color: var(--text-dim);
+  font-size: 11px; font-family: var(--mono);
+  padding: 3px 10px; cursor: pointer; white-space: nowrap;
+}
+.briefing-dir-toggle.active { color: var(--purple, #9b8fff); border-color: var(--purple, #9b8fff); }
+.briefing-dir-wrap { display: none; margin-top: 10px; }
+.briefing-dir-wrap.open { display: block; }
+
 .instructor-card {
   background: var(--bg2);
   border: 1px solid var(--cyan);
@@ -637,6 +692,53 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
         </div>
 
         <div class="fs">
+          <div class="fst" id="briefing-section-title">Briefing <span style="font-size:11px;font-weight:400;color:var(--text-dim);margin-left:6px">· Voorbereidende fase</span></div>
+
+          <!-- ── BRIEFING KAART ── -->
+          <div class="briefing-card" id="briefing-card">
+            <div class="briefing-hdr">
+              <span class="briefing-badge" id="briefing-badge">Voorbereidend</span>
+              <span class="briefing-name" id="briefing-name">BRIEFING</span>
+              <span class="briefing-tag" id="briefing-tag">Instructeur-rol · Vóór scenario-start</span>
+            </div>
+            <div class="briefing-desc" id="briefing-desc">
+              De briefing is een optionele voorbereidende fase vóór het scenario. Alleen de Instructeur is actief — operationele rollen spelen nog niet. Gebruik dit voor context, introductie of een Storyline-module.
+            </div>
+            <div class="briefing-body">
+              <!-- Storyline URL -->
+              <div class="fd" style="margin-bottom:10px">
+                <label style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase">Storyline URL briefing</label>
+                <input id="f-briefing-slide-url" value="" placeholder="https://...story.html#/slide-id (optioneel)"
+                  oninput="cur.briefing.slideUrl=this.value;dirty()"
+                  style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;font-family:inherit;padding:6px 10px"/>
+              </div>
+              <!-- Duur -->
+              <div class="fd" style="margin-bottom:10px">
+                <label style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase">Duur (seconden)</label>
+                <input id="f-briefing-dur" type="number" min="30" max="900" value="120" placeholder="sec"
+                  oninput="cur.briefing.dur=parseInt(this.value)||120;dirty()"
+                  style="width:100px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;font-family:inherit;padding:6px 10px"/>
+              </div>
+              <!-- Regie-instructie toggle -->
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:0">
+                <button class="briefing-dir-toggle" id="briefing-dir-btn" onclick="toggleBriefingDir()">
+                  ▶ Regie Instructeur briefing
+                </button>
+                <span style="font-size:11px;color:var(--text-dim)" id="briefing-dir-hint">Specifieke instructies voor de Instructeur tijdens de briefing</span>
+              </div>
+              <div class="briefing-dir-wrap" id="briefing-dir-wrap">
+                <div class="briefing-body" style="padding:10px 0 0">
+                  <textarea id="f-briefing-dir" rows="4"
+                    placeholder="Beschrijf wat de Instructeur doet tijdens de briefing.&#10;&#10;Voorbeeld:&#10;Verwelkom de deelnemer en introduceer het scenario. Geef een korte schets van de operationele context. Verwijs naar de Storyline-module voor achtergrondinformatie. Wacht op bevestiging van de deelnemer voordat het scenario van start gaat."
+                    oninput="cur.briefing.dir=this.value;dirty()"
+                    style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;font-family:inherit;padding:8px 10px;resize:vertical;min-height:90px"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fs">
           <div class="fst" data-i18n="ph.title">Scenario-fasen <button class="btn btn-g btn-sm" id="btn-add-phase" onclick="addPhase()" style="margin-left:auto">＋</button></div>
           <div id="phases-list"></div>
         </div>
@@ -924,6 +1026,7 @@ function defSc() {
   return {
     id: 'sc_'+Date.now(), title:'', organization:'', description:'',
     storylineModuleId:'',
+    briefing:{ slideUrl:'', dur:120, dir:'', _dirOpen:false },
     phases:[
       {id:'p1',label:lang==='en'?'Orientation':   'Oriëntatie',     dur:180, dir:'', slideUrl:'', _dirOpen:false},
       {id:'p2',label:lang==='en'?'First signals':  'Eerste signalen',dur:120, dir:'', slideUrl:'', _dirOpen:false},
@@ -1262,7 +1365,30 @@ function populate(){
   sv('f-pd',   cur.participant?.date||new Date().toISOString().slice(0,10));
   sv('f-pnote',cur.participant?.note||'');
   sv('f-ps',   cur.participant?.session||genSid());
-  renderPhases(); renderRoles();
+  renderPhases(); renderRoles(); renderBriefing();
+}
+
+function renderBriefing() {
+  const b = cur.briefing || { slideUrl:'', dur:120, dir:'', _dirOpen:false };
+  sv('f-briefing-slide-url', b.slideUrl||'');
+  const durEl = document.getElementById('f-briefing-dur');
+  if (durEl) durEl.value = b.dur||120;
+  sv('f-briefing-dir', b.dir||'');
+  const dirWrap = document.getElementById('briefing-dir-wrap');
+  const dirBtn  = document.getElementById('briefing-dir-btn');
+  if (dirWrap && dirBtn) {
+    const isOpen = b._dirOpen || false;
+    dirWrap.classList.toggle('open', isOpen);
+    dirBtn.classList.toggle('active', isOpen);
+    dirBtn.textContent = (isOpen ? '▼' : '▶') + ' Regie Instructeur briefing';
+  }
+}
+
+function toggleBriefingDir() {
+  if (!cur.briefing) cur.briefing = { slideUrl:'', dur:120, dir:'', _dirOpen:false };
+  cur.briefing._dirOpen = !cur.briefing._dirOpen;
+  renderBriefing();
+  dirty();
 }
 
 function readForm(){
@@ -1282,6 +1408,12 @@ function readForm(){
     name:gv('f-pn'),role:gv('f-pr'),org:gv('f-po'),loc:gv('f-pl'),
     date:gv('f-pd'),note:gv('f-pnote'),session:gv('f-ps')
   };
+  // Briefing
+  if (!cur.briefing) cur.briefing = { slideUrl:'', dur:120, dir:'', _dirOpen:false };
+  cur.briefing.slideUrl = gv('f-briefing-slide-url');
+  cur.briefing.dir      = gv('f-briefing-dir');
+  const durEl = document.getElementById('f-briefing-dur');
+  if (durEl) cur.briefing.dur = parseInt(durEl.value)||120;
 }
 
 function sv(id,v){ const e=document.getElementById(id); if(e) e.value=v||''; }
@@ -1686,8 +1818,27 @@ Zet het token ALTIJD als laatste regel van je beurt, op een volledig aparte rege
 
   const companyContext = buildCompanyContextPrompt(cur.linkedProfileId);
 
+  // Briefing-blok voor het systeem-prompt (alleen Instructeur actief)
+  const briefingObj = cur.briefing || {};
+  const briefingDir = briefingObj.dir?.trim() || '';
+  const briefingPromptBlock = (() => {
+    const hasBriefing = briefingDir || briefingObj.slideUrl?.trim();
+    if (!hasBriefing) return '';
+    const dirText = briefingDir
+      ? briefingDir
+      : 'Verwelkom de deelnemer en geef een korte introductie van het scenario. Wacht op bevestiging van de deelnemer voordat het scenario van start gaat.';
+    return `BRIEFING — VOORBEREIDENDE FASE (vóór scenario-start):
+De briefing is de fase vóór het eigenlijke scenario. Tijdens de briefing is ALLEEN de Instructeur actief — operationele rollen (radiocommunicatie) zijn nog NIET actief.
+Duur: indicatief ${briefingObj.dur||120} seconden.
+${briefingObj.slideUrl?.trim() ? `Storyline-module: ${briefingObj.slideUrl.trim()}\n` : ''}Instructies voor de Instructeur tijdens de briefing:
+${dirText}
+
+Zodra de briefing is afgerond en de deelnemer gereed is, stuur je [FASE:1] op een aparte regel om het scenario te starten. Dit activeert de operationele rollen en start fase 1.`;
+  })();
+
   const combinedPrompt = [
     instructorPrompt + phaseTokenInstruction,
+    briefingPromptBlock || '',
     roles.length
       ? `OPERATIONELE ROLLEN:\n${rolesPrompt}`
       : '',
@@ -1707,7 +1858,7 @@ Zet het token ALTIJD als laatste regel van je beurt, op een volledig aparte rege
 
   return {
     ...metaBlock,
-    schemaVersion:'1.4', exportedAt:new Date().toISOString(),
+    schemaVersion:'1.5', exportedAt:new Date().toISOString(),
     language: lang,
     participant: cur.participant,
     aiScenario:{
@@ -1720,10 +1871,20 @@ Zet het token ALTIJD als laatste regel van je beurt, op een volledig aparte rege
       debriefingPrompt: cur.debriefingPrompt?.trim() || '',
       linkedProfileId: cur.linkedProfileId || '',
       companyContext: companyContext || '',
+      briefing: {
+        slideUrl: briefingObj.slideUrl?.trim() || '',
+        dur:      briefingObj.dur || 120,
+        dir:      briefingDir
+      },
       systemPromptExtraRaw:{
         instructor: { behavior: cur.instructorBehavior||'' },
         general: cur.aiExtra||'',
         roles: roles,
+        briefing: {
+          slideUrl: briefingObj.slideUrl?.trim() || '',
+          dur:      briefingObj.dur || 120,
+          dir:      briefingDir
+        },
         phaseDirections: (cur.phases||[]).map((p,i)=>({
           phaseIndex:i+1, label:p.label||'', durationHint:p.dur||120,
           direction:p.dir||''
@@ -1852,6 +2013,16 @@ function handleImport(ev){
         diff = diff==='easy'?1 : diff==='hard'?5 : 3;
       }
 
+      // ── Briefing migratie ──────────────────────────────────────────────
+      // Schema 1.5+: briefing object; ouder: afwezig → lege default
+      const importedBriefing = sc.briefing || sc.systemPromptExtraRaw?.briefing || {};
+      const briefing = {
+        slideUrl:  importedBriefing.slideUrl  || '',
+        dur:       importedBriefing.dur        || 120,
+        dir:       importedBriefing.dir        || '',
+        _dirOpen:  false
+      };
+
       cur = {
         id:               sc.scenarioId||'sc_'+Date.now(),
         title:            sc.scenarioTitle||sc.title||'',
@@ -1862,6 +2033,7 @@ function handleImport(ev){
         initialSituation: situation,
         apiKey:           sc.apiKey||'',
         instructorBehavior: instructorBhv,
+        briefing,
         phases:           finalPhases,
         roles,
         difficulty:       diff,
