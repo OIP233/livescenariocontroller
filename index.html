@@ -8,35 +8,61 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;700&display=swap');
 
 :root {
-  --bg:          #1a1e24;
-  --bg2:         #22272f;
-  --bg3:         #2a3040;
-  --panel:       #2e3545;
-  --border:      #3a4558;
-  --border-hi:   #5a7090;
-  --text:        #d8e4ee;
-  --text-dim:    #8aa0b4;
-  --text-bright: #f0f8ff;
-  --green:       #3de87a;
-  --green-dim:   #163828;
-  --amber:       #ffb030;
-  --amber-dim:   #3d2800;
-  --red:         #ff4e40;
-  --red-dim:     #3d1010;
-  --blue:        #4aaef0;
-  --blue-dim:    #102840;
-  --cyan:        #20d8ff;
-  --cyan-dim:    #082838;
-  --purple:      #a78bfa;
-  --purple-dim:  #2e1e4e;
+  /* ── Donker thema (standaard) ── */
+  --bg:          #161b22;
+  --bg2:         #1e2430;
+  --bg3:         #252d3d;
+  --panel:       #2c364a;
+  --border:      #3d4f68;
+  --border-hi:   #6080a8;
+  --text:        #e2edf8;
+  --text-dim:    #9ab4cc;
+  --text-bright: #f5faff;
+  --green:       #2dfa7a;
+  --green-dim:   #0e2d1e;
+  --amber:       #ffc040;
+  --amber-dim:   #3a2500;
+  --red:         #ff5040;
+  --red-dim:     #3a0e0e;
+  --blue:        #58b8ff;
+  --blue-dim:    #0e2840;
+  --cyan:        #00e8ff;
+  --cyan-dim:    #062836;
+  --purple:      #b89dff;
+  --purple-dim:  #2a1c50;
   --mono: 'Share Tech Mono', monospace;
   --sans: 'Barlow', sans-serif;
   --cond: 'Barlow Condensed', sans-serif;
 }
 
+/* ── Licht thema (dag-modus) ── */
+body.light {
+  --bg:          #f0f4f8;
+  --bg2:         #e2eaf2;
+  --bg3:         #d4dfe9;
+  --panel:       #c8d6e4;
+  --border:      #a8bdd0;
+  --border-hi:   #7098b8;
+  --text:        #1a2a3a;
+  --text-dim:    #4a6880;
+  --text-bright: #0d1c2a;
+  --green:       #0b8a40;
+  --green-dim:   #c8f0d8;
+  --amber:       #c06800;
+  --amber-dim:   #fce8c0;
+  --red:         #cc2010;
+  --red-dim:     #fcd8d4;
+  --blue:        #1860b0;
+  --blue-dim:    #c8ddf4;
+  --cyan:        #006888;
+  --cyan-dim:    #c0e8f4;
+  --purple:      #6030b0;
+  --purple-dim:  #e0d4f8;
+}
+
 * { margin:0; padding:0; box-sizing:border-box; }
 html { overflow:hidden; }
-body { height:100%; background:var(--bg); color:var(--text); font-family:var(--sans); font-size:14px; }
+body { height:100%; background:var(--bg); color:var(--text); font-family:var(--sans); font-size:15px; transition:background .2s, color .2s; }
 
 /* ── TOPBAR ─────────────────────────────────────── */
 #topbar {
@@ -49,15 +75,26 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
   gap: 16px;
   flex-shrink: 0;
 }
-.logo { font-family:var(--cond); font-size:20px; font-weight:700; color:var(--cyan); letter-spacing:3px; text-transform:uppercase; white-space:nowrap; }
+.logo { font-family:var(--cond); font-size:22px; font-weight:700; color:var(--cyan); letter-spacing:3px; text-transform:uppercase; white-space:nowrap; }
 .logo em { color:var(--text-dim); font-style:normal; font-weight:500; }
 .top-sep { width:1px; height:22px; background:var(--border); flex-shrink:0; }
-#top-org { font-family:var(--mono); font-size:12px; color:var(--text-dim); flex:1; }
-#top-sc  { font-family:var(--cond); font-size:15px; color:var(--text); font-weight:600; }
-.top-badge { font-family:var(--mono); font-size:10px; padding:3px 10px; border-radius:2px; letter-spacing:1px; text-transform:uppercase; font-weight:600; flex-shrink:0; }
+#top-org { font-family:var(--mono); font-size:13px; color:var(--text-dim); flex:1; }
+#top-sc  { font-family:var(--cond); font-size:16px; color:var(--text); font-weight:600; }
+.top-badge { font-family:var(--mono); font-size:13px; padding:4px 11px; border-radius:2px; letter-spacing:1px; text-transform:uppercase; font-weight:600; flex-shrink:0; }
 .b-unsaved { background:var(--amber-dim); color:var(--amber); border:1px solid var(--amber); }
 .b-saved   { background:var(--green-dim); color:var(--green); border:1px solid var(--green); }
 .b-new     { background:var(--bg3); color:var(--text-dim); border:1px solid var(--border-hi); }
+
+/* Day/night mode toggle */
+#daymode-btn {
+  font-family:var(--mono); font-size:14px;
+  background:transparent; border:1px solid var(--border-hi);
+  color:var(--text-dim); padding:5px 9px; border-radius:3px;
+  cursor:pointer; transition:all .15s; flex-shrink:0;
+  line-height:1;
+}
+#daymode-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+body.light #daymode-btn { border-color:var(--border-hi); color:var(--text-dim); }
 
 /* ── LAYOUT ─────────────────────────────────────── */
 #shell { display:flex; height:calc(100vh - 50px); overflow:hidden; }
@@ -86,8 +123,8 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 .tab-btn.active { background:var(--cyan-dim); }
 .tab-btn.active .ti { color:var(--cyan); }
 .tab-btn.active .tl { color:var(--cyan); }
-.ti { font-size:19px; color:var(--text-dim); line-height:1; }
-.tl { font-family:var(--cond); font-size:8px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-dim); }
+.ti { font-size:21px; color:var(--text-dim); line-height:1; }
+.tl { font-family:var(--cond); font-size:9px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-dim); }
 .sb-div { width:38px; height:1px; background:var(--border); margin:4px 0; }
 
 /* ── CONTENT ────────────────────────────────────── */
@@ -96,8 +133,8 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 .panel.active { display:flex; }
 
 .ph { padding:14px 22px 12px; border-bottom:1px solid var(--border); background:var(--bg2); flex-shrink:0; }
-.ph h2 { font-family:var(--cond); font-size:18px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-bright); margin-bottom:2px; }
-.ph p  { font-size:13px; color:var(--text-dim); }
+.ph h2 { font-family:var(--cond); font-size:20px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-bright); margin-bottom:2px; }
+.ph p  { font-size:14px; color:var(--text-dim); }
 
 .pb { flex:1; overflow-y:auto; padding:20px 22px; }
 .pb::-webkit-scrollbar { width:4px; }
@@ -106,7 +143,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 /* ── FORM ───────────────────────────────────────── */
 .fs { margin-bottom:28px; }
 .fst {
-  font-family:var(--cond); font-size:12px; font-weight:700;
+  font-family:var(--cond); font-size:13px; font-weight:700;
   letter-spacing:2px; text-transform:uppercase; color:var(--cyan);
   margin-bottom:12px; padding-bottom:6px;
   border-bottom:1px solid var(--border);
@@ -118,16 +155,16 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 .fr3 { grid-template-columns:1fr 1fr 1fr; }
 
 .fd { display:flex; flex-direction:column; gap:5px; }
-.fd label { font-family:var(--mono); font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+.fd label { font-family:var(--mono); font-size:13px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
 .fd input, .fd textarea, .fd select {
   background:var(--bg3); border:1px solid var(--border-hi); border-radius:4px;
-  padding:9px 12px; color:var(--text-bright); font-family:var(--sans);
-  font-size:14px; outline:none; transition:border-color .2s; width:100%;
+  padding:10px 13px; color:var(--text-bright); font-family:var(--sans);
+  font-size:15px; outline:none; transition:border-color .2s; width:100%;
 }
 .fd input:focus, .fd textarea:focus, .fd select:focus { border-color:var(--cyan); }
-.fd textarea { resize:vertical; min-height:80px; line-height:1.6; }
+.fd textarea { resize:vertical; min-height:80px; line-height:1.65; }
 .fd select option { background:var(--bg3); }
-.fd input::placeholder, .fd textarea::placeholder { color:var(--text-dim); opacity:.7; }
+.fd input::placeholder, .fd textarea::placeholder { color:var(--text-dim); opacity:.8; }
 
 .sw { display:flex; align-items:center; gap:12px; }
 .sw input[type=range] { flex:1; background:transparent; border:none; padding:0; accent-color:var(--cyan); }
@@ -139,8 +176,8 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
   padding:10px 12px; background:var(--bg3); border-radius:6px;
   margin-bottom:8px; border:1px solid var(--border);
 }
-.trl  { font-size:14px; color:var(--text); }
-.trs  { font-size:12px; color:var(--text-dim); margin-top:2px; }
+.trl  { font-size:15px; color:var(--text); }
+.trs  { font-size:13px; color:var(--text-dim); margin-top:2px; }
 .tgl  { width:40px; height:22px; background:var(--border-hi); border-radius:11px; position:relative; cursor:pointer; transition:background .2s; flex-shrink:0; border:none; }
 .tgl.on { background:var(--cyan); }
 .tgl::after { content:''; position:absolute; top:3px; left:3px; width:16px; height:16px; background:#fff; border-radius:50%; transition:transform .2s; }
@@ -149,7 +186,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 /* Tags */
 .tg-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
 .tg {
-  padding:3px 10px; border-radius:12px; font-family:var(--mono); font-size:11px;
+  padding:4px 11px; border-radius:12px; font-family:var(--mono); font-size:12px;
   display:flex; align-items:center; gap:5px; cursor:default;
 }
 .tg.normal   { background:rgba(61,232,122,.12); color:#70e898; border:1px solid rgba(61,232,122,.3); }
@@ -167,10 +204,10 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 }
 .lc:hover   { border-color:var(--border-hi); background:var(--panel); }
 .lc.active  { border-color:var(--cyan); background:var(--cyan-dim); }
-.lc-title   { font-family:var(--cond); font-size:16px; font-weight:700; color:var(--text-bright); margin-bottom:4px; }
-.lc-org     { font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:10px; }
+.lc-title   { font-family:var(--cond); font-size:17px; font-weight:700; color:var(--text-bright); margin-bottom:4px; }
+.lc-org     { font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:10px; }
 .lc-meta    { display:flex; gap:8px; flex-wrap:wrap; }
-.lc-pill    { font-family:var(--mono); font-size:10px; padding:2px 8px; border-radius:10px; background:var(--bg2); color:var(--text-dim); border:1px solid var(--border); }
+.lc-pill    { font-family:var(--mono); font-size:13px; padding:3px 9px; border-radius:10px; background:var(--bg2); color:var(--text-dim); border:1px solid var(--border); }
 .lc-acts    { position:absolute; top:10px; right:12px; display:flex; gap:6px; opacity:0; transition:opacity .15s; }
 .lc:hover .lc-acts { opacity:1; }
 .la { width:26px; height:26px; border-radius:4px; border:1px solid var(--border-hi); background:var(--bg2); color:var(--text-dim); cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; transition:all .1s; }
@@ -193,15 +230,15 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
   cursor:pointer; user-select:none;
 }
 .cc-hdr:hover { background:var(--bg3); }
-.cc-id { font-family:var(--mono); font-size:11px; padding:2px 8px; border-radius:3px; background:var(--bg2); color:var(--cyan); border:1px solid var(--border-hi); flex-shrink:0; }
+.cc-id { font-family:var(--mono); font-size:13px; padding:2px 8px; border-radius:3px; background:var(--bg2); color:var(--cyan); border:1px solid var(--border-hi); flex-shrink:0; }
 .cc-name { font-size:15px; font-weight:600; color:var(--text-bright); flex:1; }
-.cc-crit { font-family:var(--mono); font-size:10px; padding:2px 8px; border-radius:10px; background:rgba(255,78,64,.12); color:var(--red); border:1px solid rgba(255,78,64,.3); }
+.cc-crit { font-family:var(--mono); font-size:12px; padding:2px 8px; border-radius:10px; background:rgba(255,78,64,.12); color:var(--red); border:1px solid rgba(255,78,64,.3); }
 .cc-chev { color:var(--text-dim); font-size:14px; transition:transform .2s; }
 .cc-chev.open { transform:rotate(90deg); }
 .cc-body { padding:16px; display:none; border-top:1px solid var(--border); }
 .cc-body.open { display:block; }
 .esc-blk { margin-top:14px; padding:12px 14px; background:var(--bg2); border:1px solid var(--border); border-left:3px solid var(--amber); border-radius:0 6px 6px 0; }
-.esc-lbl { font-family:var(--mono); font-size:10px; color:var(--amber); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.esc-lbl { font-family:var(--mono); font-size:12px; color:var(--amber); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
 
 /* Fase kaarten */
 .phase-card {
@@ -213,17 +250,17 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 .phase-hdr {
   display:flex; align-items:center; gap:10px; padding:10px 12px;
 }
-.pnum { font-family:var(--mono); font-size:11px; color:var(--text-dim); width:24px; flex-shrink:0; text-align:center; }
+.pnum { font-family:var(--mono); font-size:12px; color:var(--text-dim); width:24px; flex-shrink:0; text-align:center; }
 .pinput {
   flex:1; background:var(--bg2); border:1px solid var(--border-hi);
-  border-radius:4px; padding:7px 10px; color:var(--text-bright);
-  font-size:13px; outline:none;
+  border-radius:4px; padding:8px 11px; color:var(--text-bright);
+  font-size:14px; outline:none;
 }
 .pinput:focus { border-color:var(--cyan); }
 .pdur {
   width:90px; flex-shrink:0; background:var(--bg2);
   border:1px solid var(--border-hi); border-radius:4px;
-  padding:7px 10px; color:var(--cyan); font-size:13px;
+  padding:8px 10px; color:var(--cyan); font-size:14px;
   outline:none; text-align:center; font-family:var(--mono);
 }
 .pdur:focus { border-color:var(--cyan); }
@@ -231,7 +268,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 .pdir-btn {
   flex-shrink:0; background:transparent; border:1px solid var(--border-hi);
   border-radius:4px; padding:5px 10px; color:var(--text-dim);
-  font-family:var(--mono); font-size:10px; cursor:pointer;
+  font-family:var(--mono); font-size:12px; cursor:pointer;
   transition:all .15s; letter-spacing:.5px; white-space:nowrap;
 }
 .pdir-btn:hover  { border-color:var(--cyan); color:var(--cyan); }
@@ -242,7 +279,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 }
 .phase-dir-wrap.open { display:block; }
 .phase-dir-lbl {
-  font-family:var(--mono); font-size:10px; color:var(--cyan);
+  font-family:var(--mono); font-size:12px; color:var(--cyan);
   text-transform:uppercase; letter-spacing:1.5px;
   margin:10px 0 6px; display:flex; align-items:center; gap:8px;
 }
@@ -250,12 +287,12 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
   content:''; flex:1; height:1px; background:var(--border);
 }
 .phase-dir-hint {
-  font-size:12px; color:var(--text-dim); margin-bottom:8px; line-height:1.5;
+  font-size:13px; color:var(--text-dim); margin-bottom:8px; line-height:1.5;
 }
 .pdir-ta {
   width:100%; background:var(--bg2); border:1px solid var(--border-hi);
-  border-radius:4px; padding:9px 12px; color:var(--text-bright);
-  font-family:var(--sans); font-size:13px; line-height:1.65;
+  border-radius:4px; padding:10px 13px; color:var(--text-bright);
+  font-family:var(--sans); font-size:14px; line-height:1.65;
   outline:none; resize:vertical; min-height:80px;
 }
 .pdir-ta:focus { border-color:var(--cyan); }
@@ -288,11 +325,11 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
   color: var(--text); letter-spacing: .5px; text-transform: uppercase;
 }
 .briefing-tag {
-  font-family: var(--mono); font-size: 11px;
+  font-family: var(--mono); font-size: 13px;
   color: var(--purple, #9b8fff); opacity: .8; margin-left: auto;
 }
 .briefing-desc {
-  font-size: 12px; color: var(--text-dim);
+  font-size: 13px; color: var(--text-dim);
   padding: 8px 14px 0; line-height: 1.5;
 }
 .briefing-body { padding: 12px 14px 14px; }
@@ -301,15 +338,15 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
   width: 100%; box-sizing: border-box;
   background: var(--bg); border: 1px solid var(--border);
   border-radius: 4px; color: var(--text);
-  font-size: 12px; font-family: inherit;
-  padding: 8px 10px; resize: vertical; min-height: 80px;
+  font-size: 13px; font-family: inherit;
+  padding: 9px 11px; resize: vertical; min-height: 80px;
 }
 .briefing-body textarea:focus { outline: none; border-color: var(--purple, #9b8fff); }
 .briefing-dir-toggle {
   background: none; border: 1px solid var(--border);
   border-radius: 4px; color: var(--text-dim);
-  font-size: 11px; font-family: var(--mono);
-  padding: 3px 10px; cursor: pointer; white-space: nowrap;
+  font-size: 12px; font-family: var(--mono);
+  padding: 4px 11px; cursor: pointer; white-space: nowrap;
 }
 .briefing-dir-toggle.active { color: var(--purple, #9b8fff); border-color: var(--purple, #9b8fff); }
 .briefing-dir-wrap { display: none; margin-top: 10px; }
@@ -329,7 +366,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
   background: rgba(32,216,255,.06);
 }
 .instructor-sys-badge {
-  font-family: var(--mono); font-size: 10px;
+  font-family: var(--mono); font-size: 12px;
   background: var(--cyan-dim); color: var(--cyan);
   border: 1px solid var(--cyan); border-radius: 3px;
   padding: 3px 9px; letter-spacing: 1px;
@@ -340,7 +377,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
   color: var(--cyan); letter-spacing: 1px; flex: 1;
 }
 .instructor-desc {
-  font-size: 12px; color: var(--text-dim); line-height: 1.5;
+  font-size: 13px; color: var(--text-dim); line-height: 1.5;
   padding: 0 16px 10px;
   background: rgba(32,216,255,.04);
   border-bottom: 1px solid var(--border);
@@ -350,8 +387,8 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 .instructor-body textarea {
   width: 100%; background: var(--bg3);
   border: 1px solid rgba(32,216,255,.3); border-radius: 4px;
-  padding: 9px 12px; color: var(--text-bright);
-  font-family: var(--sans); font-size: 13px; line-height: 1.65;
+  padding: 10px 13px; color: var(--text-bright);
+  font-family: var(--sans); font-size: 14px; line-height: 1.65;
   outline: none; resize: vertical; min-height: 80px;
 }
 .instructor-body textarea:focus { border-color: var(--cyan); }
@@ -372,7 +409,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
   flex-shrink:0; background:transparent;
   border:1px solid var(--border-hi);
   border-radius:4px; padding:5px 10px; color:var(--text-dim);
-  font-family:var(--mono); font-size:10px; cursor:pointer;
+  font-family:var(--mono); font-size:12px; cursor:pointer;
   transition:all .15s; letter-spacing:.5px; white-space:nowrap;
   display:flex; align-items:center; gap:5px;
 }
@@ -393,7 +430,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
   display:flex; align-items:center; gap:10px; padding:10px 12px;
 }
 .role-badge {
-  font-family:var(--mono); font-size:11px; padding:3px 9px;
+  font-family:var(--mono); font-size:13px; padding:3px 9px;
   border-radius:3px; border:1px solid; flex-shrink:0;
   text-transform:uppercase; letter-spacing:.5px;
 }
@@ -405,15 +442,15 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 .role-badge.type-custom   { background:rgba(255,255,255,.06);color:var(--text-dim);border-color:var(--border-hi); }
 .role-name-input {
   flex:1; background:var(--bg2); border:1px solid var(--border-hi);
-  border-radius:4px; padding:7px 10px; color:var(--text-bright);
-  font-size:14px; font-weight:600; outline:none; font-family:var(--sans);
+  border-radius:4px; padding:8px 11px; color:var(--text-bright);
+  font-size:15px; font-weight:600; outline:none; font-family:var(--sans);
   text-transform:uppercase; letter-spacing:.5px;
 }
 .role-name-input:focus { border-color:var(--cyan); }
 .role-type-select {
   background:var(--bg2); border:1px solid var(--border-hi);
-  border-radius:4px; padding:7px 10px; color:var(--text);
-  font-size:13px; outline:none; cursor:pointer; flex-shrink:0;
+  border-radius:4px; padding:8px 11px; color:var(--text);
+  font-size:14px; outline:none; cursor:pointer; flex-shrink:0;
   font-family:var(--sans);
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a7090'/%3E%3C/svg%3E");
   background-repeat:no-repeat; background-position:right 8px center; padding-right:26px;
@@ -424,7 +461,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 .rbhv-btn {
   flex-shrink:0; background:transparent; border:1px solid var(--border-hi);
   border-radius:4px; padding:5px 10px; color:var(--text-dim);
-  font-family:var(--mono); font-size:10px; cursor:pointer;
+  font-family:var(--mono); font-size:12px; cursor:pointer;
   transition:all .15s; letter-spacing:.5px; white-space:nowrap;
 }
 .rbhv-btn:hover  { border-color:var(--amber); color:var(--amber); }
@@ -434,21 +471,21 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 }
 .role-bhv-wrap.open { display:block; }
 .role-bhv-lbl {
-  font-family:var(--mono); font-size:10px; color:var(--amber);
+  font-family:var(--mono); font-size:12px; color:var(--amber);
   text-transform:uppercase; letter-spacing:1.5px;
   margin:10px 0 6px; display:flex; align-items:center; gap:8px;
 }
 .role-bhv-lbl::after { content:''; flex:1; height:1px; background:var(--border); }
-.role-bhv-hint { font-size:12px; color:var(--text-dim); margin-bottom:8px; line-height:1.5; }
+.role-bhv-hint { font-size:13px; color:var(--text-dim); margin-bottom:8px; line-height:1.5; }
 .rbhv-ta {
   width:100%; background:var(--bg2); border:1px solid var(--border-hi);
-  border-radius:4px; padding:9px 12px; color:var(--text-bright);
-  font-family:var(--sans); font-size:13px; line-height:1.65;
+  border-radius:4px; padding:10px 13px; color:var(--text-bright);
+  font-family:var(--sans); font-size:14px; line-height:1.65;
   outline:none; resize:vertical; min-height:70px;
 }
 .rbhv-ta:focus { border-color:var(--amber); }
 .rbhv-ta::placeholder { color:var(--text-dim); }
-.hint-text { font-size:13px; color:var(--text-dim); line-height:1.55; }
+.hint-text { font-size:14px; color:var(--text-dim); line-height:1.55; }
 
 /* ── BEDRIJFSPROFIEL ─────────────────────────────── */
 .profile-saved-bar {
@@ -459,9 +496,9 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 .profile-saved-name {
   font-family:var(--mono); font-size:12px; color:var(--cyan); font-weight:700; flex:1;
 }
-.profile-saved-meta { font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+.profile-saved-meta { font-family:var(--mono); font-size:13px; color:var(--text-dim); }
 .profile-tag {
-  display:inline-block; font-family:var(--mono); font-size:10px;
+  display:inline-block; font-family:var(--mono); font-size:12px;
   padding:2px 8px; border-radius:10px; margin:2px 3px 2px 0;
   background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-dim);
 }
@@ -470,12 +507,12 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 #profile-link-row { background:var(--bg2); border:1px solid var(--border); border-radius:6px; padding:12px 14px; margin-bottom:16px; }
 #f-scenario-profile { width:100%; background:var(--bg3); border:1px solid var(--border-hi); color:var(--text); border-radius:4px; padding:7px 10px; font-family:var(--mono); font-size:12px; cursor:pointer; }
 #f-scenario-profile:focus { outline:none; border-color:var(--cyan); }
-.profile-preview { margin-top:10px; font-family:var(--mono); font-size:11px; color:var(--text-dim); line-height:1.7; padding:8px 10px; background:var(--bg); border-radius:4px; border:1px solid var(--border); display:none; }
+.profile-preview { margin-top:10px; font-family:var(--mono); font-size:13px; color:var(--text-dim); line-height:1.7; padding:8px 10px; background:var(--bg); border-radius:4px; border:1px solid var(--border); display:none; }
 
 /* ── KNOPPEN ─────────────────────────────────────── */
 .btn {
-  padding:9px 18px; border-radius:4px; font-family:var(--cond);
-  font-size:14px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  padding:10px 19px; border-radius:4px; font-family:var(--cond);
+  font-size:15px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
   cursor:pointer; transition:all .15s; border:1px solid;
   display:inline-flex; align-items:center; gap:7px;
 }
@@ -487,7 +524,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 .btn-d:hover { background:var(--red); color:#fff; }
 .btn-g { background:transparent; border-color:var(--border-hi); color:var(--text-dim); }
 .btn-g:hover { background:var(--bg3); color:var(--text); }
-.btn-sm { padding:6px 12px; font-size:12px; }
+.btn-sm { padding:6px 13px; font-size:13px; }
 .btn-full { width:100%; justify-content:center; }
 .btn-row { display:flex; gap:10px; flex-wrap:wrap; }
 
@@ -502,7 +539,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 .exp-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:20px; }
 .exp-card { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:12px 14px; }
 .exp-card .ev { font-family:var(--mono); font-size:20px; color:var(--cyan); font-weight:700; }
-.exp-card .el { font-size:11px; color:var(--text-dim); margin-top:2px; }
+.exp-card .el { font-size:13px; color:var(--text-dim); margin-top:2px; }
 .val-item { font-size:13px; padding:5px 10px; margin-bottom:4px; border-radius:0 3px 3px 0; }
 .val-ok  { color:#70e898; border-left:3px solid var(--green); background:rgba(61,232,122,.08); }
 .val-err { color:#ff9080; border-left:3px solid var(--red);   background:rgba(255,78,64,.08);  }
@@ -519,8 +556,8 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
   position:fixed; bottom:24px; left:50%;
   transform:translateX(-50%) translateY(20px);
   background:var(--panel); border:1px solid var(--border-hi);
-  border-radius:6px; padding:10px 20px;
-  font-family:var(--mono); font-size:13px; color:var(--text-bright);
+  border-radius:6px; padding:11px 22px;
+  font-family:var(--mono); font-size:14px; color:var(--text-bright);
   opacity:0; transition:all .25s ease; pointer-events:none; z-index:100;
 }
 #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
@@ -565,13 +602,29 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 
 /* Taalknop in topbar */
 #lang-switch {
-  font-family:var(--mono); font-size:11px;
+  font-family:var(--mono); font-size:13px;
   background:transparent; border:1px solid var(--border-hi);
   color:var(--text-dim); padding:4px 10px; border-radius:3px;
   cursor:pointer; transition:all .15s; letter-spacing:1px;
   flex-shrink:0;
 }
 #lang-switch:hover { border-color:var(--cyan); color:var(--cyan); }
+
+/* Light-mode overrides voor hardcoded componenten */
+body.light #lang-overlay { background:var(--bg); }
+body.light #lang-overlay .lang-logo { color:var(--cyan); }
+body.light #lang-overlay .lang-sub  { color:var(--text-dim); }
+body.light .lang-btn { background:var(--bg2); color:var(--text); border-color:var(--border-hi); }
+body.light .lang-btn:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+body.light #conf-ov { background:rgba(0,0,0,.4); }
+body.light #conf-box { background:var(--bg2); border-color:var(--border-hi); }
+body.light #json-pre { color:#1a4080; }
+body.light .val-ok  { color:#0a6030; }
+body.light .val-err { color:#aa1800; }
+body.light .val-wrn { color:#885000; }
+body.light .tg.normal   { background:rgba(11,138,64,.1);  color:#0a6030; border-color:rgba(11,138,64,.3); }
+body.light .tg.warning  { background:rgba(192,104,0,.1);  color:#885000; border-color:rgba(192,104,0,.3); }
+body.light .tg.critical { background:rgba(204,32,16,.1);  color:#aa1800; border-color:rgba(204,32,16,.3); }
 </style>
 </head>
 <body>
@@ -598,6 +651,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
   <div class="top-sep"></div>
   <div id="top-sc">Geen scenario geladen</div>
   <div id="top-badge" class="top-badge b-new">NIEUW</div>
+  <button id="daymode-btn" onclick="toggleDayMode()" title="Dag/nacht modus">☀</button>
   <button id="lang-switch" onclick="showLangOverlay()">NL</button>
 </div>
 
@@ -644,7 +698,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
 
         <!-- Bedrijfsprofiel koppeling -->
         <div id="profile-link-row">
-          <label style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px">Gekoppeld bedrijfsprofiel</label>
+          <label style="font-family:var(--mono);font-size:13px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px">Gekoppeld bedrijfsprofiel</label>
           <select id="f-scenario-profile" onchange="onProfileSelect()"></select>
           <div id="profile-preview" class="profile-preview"></div>
         </div>
@@ -665,7 +719,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
             <div class="fd">
               <label>Beginsituatie (zichtbaar in AI-module bij start)</label>
               <input id="f-sit" placeholder="bijv. T-204 · Biodiesel inslag MS Rosita · Pomp P-12 · Debiet 380 m³/h · Niveau 67% ↑" oninput="dirty()"/>
-              <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Korte statuszin die onderaan het alarmpaneel verschijnt als beginsituatie voor de deelnemer.</div>
+              <div style="font-size:13px;color:var(--text-dim);margin-top:4px">Korte statuszin die onderaan het alarmpaneel verschijnt als beginsituatie voor de deelnemer.</div>
             </div>
           </div>
         </div>
@@ -673,7 +727,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
         <div class="fs">
           <div class="fst" data-i18n="api.title" style="display:flex;align-items:center;gap:10px">
             API-configuratie
-            <span style="font-family:var(--mono);font-size:10px;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber);padding:2px 8px;border-radius:3px;letter-spacing:.5px">VERTROUWELIJK</span>
+            <span style="font-family:var(--mono);font-size:12px;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber);padding:2px 8px;border-radius:3px;letter-spacing:.5px">VERTROUWELIJK</span>
           </div>
           <div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;line-height:1.6;padding:10px 12px;background:rgba(255,176,48,.06);border-left:3px solid var(--amber);border-radius:0 4px 4px 0;">
             De API-sleutel wordt opgeslagen in de geëxporteerde JSON en automatisch ingelezen door de AI-module.
@@ -684,7 +738,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
               <input type="password" id="f-apikey" placeholder="sk-ant-api03-..."
                 oninput="dirty()" autocomplete="off"
                 style="font-family:var(--mono);letter-spacing:1px"/>
-              <div style="font-size:11px;color:var(--text-dim);margin-top:4px">
+              <div style="font-size:13px;color:var(--text-dim);margin-top:4px">
                 Laat leeg als de deelnemer de sleutel zelf invoert bij het starten. Vul in om het startscherm voor de deelnemer te vereenvoudigen.
               </div>
             </div>
@@ -692,7 +746,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
         </div>
 
         <div class="fs">
-          <div class="fst" id="briefing-section-title">Briefing <span style="font-size:11px;font-weight:400;color:var(--text-dim);margin-left:6px">· Voorbereidende fase</span></div>
+          <div class="fst" id="briefing-section-title">Briefing <span id="briefing-section-sub" style="font-size:13px;font-weight:400;color:var(--text-dim);margin-left:6px">· Voorbereidende fase</span></div>
 
           <!-- ── BRIEFING KAART ── -->
           <div class="briefing-card" id="briefing-card">
@@ -707,24 +761,22 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
             <div class="briefing-body">
               <!-- Storyline URL -->
               <div class="fd" style="margin-bottom:10px">
-                <label style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase">Storyline URL briefing</label>
+                <label id="lbl-briefing-url" style="font-family:var(--mono);font-size:12px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase">Storyline URL briefing</label>
                 <input id="f-briefing-slide-url" value="" placeholder="https://...story.html#/slide-id (optioneel)"
                   oninput="cur.briefing.slideUrl=this.value;dirty()"
                   style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;font-family:inherit;padding:6px 10px"/>
               </div>
               <!-- Duur -->
               <div class="fd" style="margin-bottom:10px">
-                <label style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase">Duur (seconden)</label>
+                <label id="lbl-briefing-dur" style="font-family:var(--mono);font-size:12px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase">Duur (seconden)</label>
                 <input id="f-briefing-dur" type="number" min="30" max="900" value="120" placeholder="sec"
                   oninput="cur.briefing.dur=parseInt(this.value)||120;dirty()"
                   style="width:100px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;font-family:inherit;padding:6px 10px"/>
               </div>
               <!-- Regie-instructie toggle -->
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:0">
-                <button class="briefing-dir-toggle" id="briefing-dir-btn" onclick="toggleBriefingDir()">
-                  ▶ Regie Instructeur briefing
-                </button>
-                <span style="font-size:11px;color:var(--text-dim)" id="briefing-dir-hint">Specifieke instructies voor de Instructeur tijdens de briefing</span>
+                <button class="briefing-dir-toggle" id="briefing-dir-btn" onclick="toggleBriefingDir()"><span id="briefing-dir-arrow">▶</span> <span id="briefing-dir-btn-lbl">Regie Instructeur briefing</span></button>
+                <span style="font-size:13px;color:var(--text-dim)" id="briefing-dir-hint">Specifieke instructies voor de Instructeur tijdens de briefing</span>
               </div>
               <div class="briefing-dir-wrap" id="briefing-dir-wrap">
                 <div class="briefing-body" style="padding:10px 0 0">
@@ -753,7 +805,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
             <div class="instructor-hdr">
               <span class="instructor-sys-badge" data-i18n="instructor.badge">Systeemrol</span>
               <span class="instructor-name" data-i18n="instructor.name">INSTRUCTEUR</span>
-              <span data-i18n="instructor.tag" style="font-family:var(--mono);font-size:11px;color:var(--cyan);opacity:.7">Primaire gespreksrol · Altijd aanwezig</span>
+              <span data-i18n="instructor.tag" style="font-family:var(--mono);font-size:13px;color:var(--cyan);opacity:.7">Primaire gespreksrol · Altijd aanwezig</span>
             </div>
             <div class="instructor-desc" data-i18n="instructor.desc">
               De Instructeur staat buiten het operationele scenario. Hij bewaakt de voortgang, helpt bij vastlopen, geeft hints bij lage moeilijkheidsgraad en leidt het scenario naar de debriefing. Operationele rollen hieronder spelen het verhaal — de Instructeur begeleidt de training.
@@ -771,7 +823,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
           <!-- ── VRIJE OPERATIONELE ROLLEN ── -->
           <div class="fst" data-i18n="roles.op_title" style="margin-bottom:10px">
             Operationele rollen
-            <button class="btn btn-g btn-sm" onclick="addRole()" style="margin-left:auto">＋ Rol toevoegen</button>
+            <button class="btn btn-g btn-sm" id="btn-add-role" onclick="addRole()" style="margin-left:auto">＋ Rol toevoegen</button>
           </div>
           <div class="hint-text" style="margin-bottom:12px">Definieer alle AI-sprekers die in de radiodialoog verschijnen als deel van het scenario. Claude speelt al deze rollen tegelijk.</div>
           <div id="roles-list"></div>
@@ -979,7 +1031,7 @@ body { height:100%; background:var(--bg); color:var(--text); font-family:var(--s
             <div class="fd">
               <label id="exp-expiry-label">Geldig tot en met</label>
               <input type="date" id="f-expiry" oninput="dirty()" style="width:100%"/>
-              <div style="font-size:11px;color:var(--text-dim);margin-top:4px" id="exp-expiry-hint">
+              <div style="font-size:13px;color:var(--text-dim);margin-top:4px" id="exp-expiry-hint">
                 Na deze datum weigert de Player het bestand. Laat leeg voor onbeperkte geldigheid.
               </div>
             </div>
@@ -1034,8 +1086,8 @@ function defSc() {
       {id:'p4',label:lang==='en'?'Resolution':     'Afhandeling',    dur:120, dir:'', slideUrl:'', _dirOpen:false}
     ],
     roles:[
-      {id:'r1', name:'NAAM',     type:'dispatch', behavior:'', primary:true,  _open:false},
-      {id:'r2', name:'NAAM',     type:'field',    behavior:'', primary:false, _open:false}
+      {id:'r1', name:'NAAM', type:'dispatch', behavior:'', primary:true,  _open:false},
+      {id:'r2', name:'NAAM', type:'field',    behavior:'', primary:false, _open:false}
     ],
     difficulty:3, aiExtra:'',
     settings:{debriefDelay:false},
@@ -1380,7 +1432,10 @@ function renderBriefing() {
     const isOpen = b._dirOpen || false;
     dirWrap.classList.toggle('open', isOpen);
     dirBtn.classList.toggle('active', isOpen);
-    dirBtn.textContent = (isOpen ? '▼' : '▶') + ' Regie Instructeur briefing';
+    const dirBtnLbl = document.getElementById('briefing-dir-btn-lbl');
+    if (dirBtnLbl) dirBtnLbl.textContent = t('briefing.btn_dir');
+    const dirArrow = document.getElementById('briefing-dir-arrow');
+    if (dirArrow) dirArrow.textContent = isOpen ? '▼' : '▶';
   }
 }
 
@@ -1485,7 +1540,7 @@ function renderPhases(){
           oninput="cur.phases[${i}].label=this.value;dirty()"/>
         <input type="number" min="30" max="600" value="${p.dur||120}" class="pdur"
           placeholder="sec" oninput="cur.phases[${i}].dur=parseInt(this.value)||120;dirty()"/>
-        <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);flex-shrink:0">sec</span>
+        <span style="font-family:var(--mono);font-size:12px;color:var(--text-dim);flex-shrink:0">sec</span>
         <button class="pdir-btn${isOpen?' active':''}" id="pdb${i}"
           onclick="togPhaseDir(${i})" title="${t('ph.regie_lbl')}">
           ${hasDir?t('ph.btn_regie_filled'):t('ph.btn_regie')}
@@ -1493,10 +1548,10 @@ function renderPhases(){
         <button class="btn btn-g btn-sm" onclick="remPhase(${i})">✕</button>
       </div>
       <div class="fd" style="padding:8px 12px 0;display:flex;gap:8px;align-items:center">
-        <label style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;flex-shrink:0">Storyline URL fase ${i+1}</label>
+        <label style="font-family:var(--mono);font-size:12px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;flex-shrink:0">Storyline URL fase ${i+1}</label>
         <input value="${esc(p.slideUrl||'')}" placeholder="https://...story.html#/slide-id (optioneel)"
           oninput="cur.phases[${i}].slideUrl=this.value;dirty()"
-          style="flex:1;background:var(--bg3);border:1px solid var(--border-hi);border-radius:4px;padding:6px 10px;color:var(--text-bright);font-family:var(--mono);font-size:11px;outline:none"/>
+          style="flex:1;background:var(--bg3);border:1px solid var(--border-hi);border-radius:4px;padding:6px 10px;color:var(--text-bright);font-family:var(--mono);font-size:13px;outline:none"/>
       </div>
       <div class="phase-dir-wrap${isOpen?' open':''}" id="pdw${i}">
         <div class="phase-dir-lbl">${t('ph.regie_lbl')} ${i+1}</div>
@@ -1583,7 +1638,7 @@ function renderRoles(){
     const old = cur.roles || {};
     cur.roles = [
       {id:'r1',name:old.dispatch||'NAAM',type:'dispatch',behavior:'',primary:true, _open:false},
-      {id:'r2',name:old.field||'NAAM',       type:'field',   behavior:'',primary:false,_open:false}
+      {id:'r2',name:old.field||'NAAM',type:'field',behavior:'',primary:false,_open:false}
     ];
     if(old.shift && old.shift !== 'SHIFT')
       cur.roles.push({id:'r3',name:old.shift,type:'shift',behavior:'',primary:false,_open:false});
@@ -1617,7 +1672,7 @@ function renderRoles(){
       <div class="role-hdr">
         <span class="${badgeCls}" id="rbadge${i}">${esc(typeLabel)}</span>
         <input class="role-name-input" id="rname${i}"
-          value="${esc(r.name)}" placeholder="NAAM"
+          value="${esc(r.name)}" placeholder="${t('briefing.name_default')}"
           oninput="updateRole(${i},'name',this.value)"
           title="De naam die boven elke chatbel verschijnt in de simulator"/>
         <select class="role-type-select" id="rtype${i}"
@@ -2218,6 +2273,19 @@ var T = {
     'roles.behavior_hint':  'Beschrijf hoe Claude deze rol speelt: toon, manier van communiceren, wanneer deze persoon in beeld komt en wat hij/zij wel of niet zegt.',
     'roles.ph_type_dispatch':'Extern / Contractor',
 
+    // Briefing
+    'briefing.section_title': 'Briefing',
+    'briefing.section_sub':   '· Voorbereidende fase',
+    'briefing.badge':         'Voorbereidend',
+    'briefing.tag':           'Instructeur-rol · Vóór scenario-start',
+    'briefing.desc':          'De briefing is een optionele voorbereidende fase vóór het scenario. Alleen de Instructeur is actief — operationele rollen spelen nog niet. Gebruik dit voor context, introductie of een Storyline-module.',
+    'briefing.lbl_url':       'Storyline URL briefing',
+    'briefing.lbl_dur':       'Duur (seconden)',
+    'briefing.btn_dir':       'Regie Instructeur briefing',
+    'briefing.dir_hint':      'Specifieke instructies voor de Instructeur tijdens de briefing',
+    'briefing.ph_dir':        'Beschrijf wat de Instructeur doet tijdens de briefing.\n\nVoorbeeld:\nVerwelkom de deelnemer en introduceer het scenario. Geef een korte schets van de operationele context. Verwijs naar de Storyline-module voor achtergrondinformatie. Wacht op bevestiging van de deelnemer voordat het scenario van start gaat.',
+    'briefing.name_default':  'NAAM',
+
     'diff.label':        'Moeilijkheidsgraad (1 = laag · 5 = hoog)',
     'ai.extra_label':    'Extra AI-instructies (optioneel)',
     'ai.extra_ph':       'Aanvullende instructies: terminologie, locatienamen, bijzondere situaties...',
@@ -2432,6 +2500,19 @@ var T = {
     'roles.behavior_hint':  'Describe how Claude plays this role: tone, communication style, when this person appears and what they do or do not say.',
     'roles.ph_type_dispatch':'External / Contractor',
 
+    // Briefing
+    'briefing.section_title': 'Briefing',
+    'briefing.section_sub':   '· Preparatory phase',
+    'briefing.badge':         'Preparatory',
+    'briefing.tag':           'Instructor role · Before scenario start',
+    'briefing.desc':          'The briefing is an optional preparatory phase before the scenario. Only the Instructor is active — operational roles are not yet playing. Use this for context, introduction or a Storyline module.',
+    'briefing.lbl_url':       'Storyline URL briefing',
+    'briefing.lbl_dur':       'Duration (seconds)',
+    'briefing.btn_dir':       'Direction Instructor briefing',
+    'briefing.dir_hint':      'Specific instructions for the Instructor during the briefing',
+    'briefing.ph_dir':        'Describe what the Instructor does during the briefing.\n\nExample:\nWelcome the participant and introduce the scenario. Give a brief outline of the operational context. Refer to the Storyline module for background information. Wait for confirmation from the participant before the scenario begins.',
+    'briefing.name_default':  'NAME',
+
     'diff.label':        'Difficulty (1 = low · 5 = high)',
     'ai.extra_label':    'Additional AI instructions (optional)',
     'ai.extra_ph':       'Additional instructions: terminology, location names, special situations...',
@@ -2527,6 +2608,20 @@ function initLang(l) {
 
 function showLangOverlay() {
   document.getElementById('lang-overlay').style.display = 'flex';
+}
+
+function toggleDayMode() {
+  const body = document.body;
+  const btn  = document.getElementById('daymode-btn');
+  if (body.classList.toggle('light')) {
+    btn.textContent = '🌙';
+    btn.title = 'Schakel naar nachtmodus';
+    localStorage.setItem('oip_ctrl_theme', 'light');
+  } else {
+    btn.textContent = '☀';
+    btn.title = 'Schakel naar dagmodus';
+    localStorage.setItem('oip_ctrl_theme', 'dark');
+  }
 }
 
 function applyLang() {
@@ -2653,6 +2748,26 @@ function applyLang() {
   const rolesHint = document.querySelector('#roles-list')?.previousElementSibling;
   if (rolesHint?.classList.contains('hint-text')) rolesHint.textContent = t('roles.hint');
 
+  // Briefing sectie
+  const bSecSub = document.getElementById('briefing-section-sub');
+  if (bSecSub) bSecSub.textContent = t('briefing.section_sub');
+  const bBadge = document.getElementById('briefing-badge');
+  if (bBadge) bBadge.textContent = t('briefing.badge');
+  const bTag = document.getElementById('briefing-tag');
+  if (bTag) bTag.textContent = t('briefing.tag');
+  const bDesc = document.getElementById('briefing-desc');
+  if (bDesc) bDesc.textContent = t('briefing.desc');
+  const bDirHint = document.getElementById('briefing-dir-hint');
+  if (bDirHint) bDirHint.textContent = t('briefing.dir_hint');
+  const bDirBtnLbl = document.getElementById('briefing-dir-btn-lbl');
+  if (bDirBtnLbl) bDirBtnLbl.textContent = t('briefing.btn_dir');
+  const bDirTa = document.getElementById('f-briefing-dir');
+  if (bDirTa) bDirTa.placeholder = t('briefing.ph_dir');
+  const bUrlLbl = document.getElementById('lbl-briefing-url');
+  if (bUrlLbl) bUrlLbl.textContent = t('briefing.lbl_url');
+  const bDurLbl = document.getElementById('lbl-briefing-dur');
+  if (bDurLbl) bDurLbl.textContent = t('briefing.lbl_dur');
+
   // Situatie hint
   const sitHint = document.querySelector('#f-sit')?.closest('.fd')?.querySelector('div[style]');
   if (sitHint) sitHint.textContent = t('sc.sit_hint');
@@ -2683,6 +2798,10 @@ function applyLang() {
   // Fase-toevoegen knop
   const addPhaseBtn = document.getElementById('btn-add-phase');
   if (addPhaseBtn) addPhaseBtn.textContent = (lang==='en' ? '+ Phase' : '+ Fase');
+
+  // Rol toevoegen knop
+  const addRoleBtn = document.getElementById('btn-add-role');
+  if (addRoleBtn) addRoleBtn.textContent = t('roles.add');
 
   // Opslaan knoppen
   document.querySelectorAll('[onclick="saveScenario()"]').forEach(b => b.textContent = t('btn.save'));
@@ -2841,6 +2960,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   sv('f-ps', genSid());
   renderLib(); topbar();
   refreshProfileDropdown();
+
+  // Vorige thema-keuze ophalen
+  const savedTheme = localStorage.getItem('oip_ctrl_theme');
+  if (savedTheme === 'light') {
+    document.body.classList.add('light');
+    const btn = document.getElementById('daymode-btn');
+    if (btn) { btn.textContent = '🌙'; btn.title = 'Schakel naar nachtmodus'; }
+  }
 
   // Vorige taalkeuze ophalen — markeer de knop maar toon altijd de overlay
   const savedLang = localStorage.getItem('oip_ctrl_lang');
