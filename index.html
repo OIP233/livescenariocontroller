@@ -1026,6 +1026,26 @@ body.light .tg.critical { background:rgba(204,32,16,.1);  color:#aa1800; border-
           <button class="btn btn-s btn-full" onclick="doExport()">↓ Download scenario JSON</button>
         </div>
         <div class="fs">
+          <div class="fst" data-i18n="exp.execlang">Uitvoeringstaal scenario</div>
+          <div class="fr fr1">
+            <div class="fd">
+              <label id="exp-execlang-label">Taal voor de deelnemer (AI-communicatie)</label>
+              <select id="f-execlang" oninput="dirty()" style="width:100%">
+                <option value="">— Gelijk aan controller-taal —</option>
+                <option value="nl">🇳🇱 Nederlands</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="es">🇪🇸 Español</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="pl">🇵🇱 Polski</option>
+              </select>
+              <div style="font-size:13px;color:var(--text-dim);margin-top:4px" id="exp-execlang-hint">
+                De AI voert het scenario uit in deze taal, ongeacht de taal van de JSON-inhoud. Handig voor EVOS-terminals in Duitsland of Spanje.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fs">
           <div class="fst" data-i18n="exp.expiry">Vervaldatum (optioneel)</div>
           <div class="fr fr2" style="align-items:flex-end">
             <div class="fd">
@@ -1067,6 +1087,98 @@ body.light .tg.critical { background:rgba(204,32,16,.1);  color:#aa1800; border-
 <input type="file" id="file-imp" accept=".json" style="display:none" onchange="handleImport(event)"/>
 
 <script>
+  (function() {
+
+  // ── Zelfde geheime sleutel als in de landing page ────────
+  // Zorg dat dit EXACT overeenkomt met TOKEN_SECRET in index.html
+  const TOKEN_SECRET = 'oip-platform-2025-geheim';
+
+  // ── Blokkeerscherm HTML ───────────────────────────────────
+  function toonBlokkeerscherm() {
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.cssText = `
+      margin:0; padding:0;
+      background:#141820;
+      font-family:'Share Tech Mono',monospace;
+      display:flex; align-items:center; justify-content:center;
+      min-height:100vh;
+    `;
+    document.body.innerHTML = `
+      <div style="text-align:center; max-width:420px; padding:40px 24px;">
+        <div style="font-size:48px; margin-bottom:24px;">🔒</div>
+        <div style="
+          font-family:'Barlow Condensed',sans-serif;
+          font-size:28px; font-weight:800;
+          color:#f0f8ff; letter-spacing:3px;
+          text-transform:uppercase; margin-bottom:12px;
+        ">Geen Toegang</div>
+        <div style="
+          font-size:13px; color:#9db8cc; line-height:1.7;
+          margin-bottom:32px;
+        ">
+          Deze applicatie is alleen toegankelijk via het OIP Live Scenario platform.
+          Ga terug naar de portal om in te loggen.
+        </div>
+        <a href="https://livescenario-start.netlify.app" style="
+          display:inline-block;
+          padding:12px 28px;
+          background:rgba(32,216,255,0.08);
+          border:1px solid #20d8ff;
+          border-radius:4px;
+          color:#20d8ff;
+          font-family:'Barlow Condensed',sans-serif;
+          font-size:14px; font-weight:700;
+          letter-spacing:2px; text-transform:uppercase;
+          text-decoration:none;
+          transition:all 0.2s;
+        ">← Naar de Portal</a>
+        <div style="margin-top:24px; font-size:10px; color:#353f55; letter-spacing:2px;">
+          OIP LIVE SCENARIO PLATFORM
+        </div>
+      </div>
+    `;
+  }
+
+  // ── Token controleren ─────────────────────────────────────
+  function controleerToken(token) {
+    try {
+      const decoded = atob(token);
+      const delen   = decoded.split('|');
+      if (delen.length !== 3) return false;
+      const [klantcode, vervalt, hashStr] = delen;
+
+      // Verlopen?
+      if (Date.now() > parseInt(vervalt)) return false;
+
+      // Handtekening controleren
+      const payload = klantcode + '|' + vervalt;
+      let hash = 0;
+      const str = payload + TOKEN_SECRET;
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return Math.abs(hash).toString(36) === hashStr;
+    } catch {
+      return false;
+    }
+  }
+
+  // ── Token ophalen uit URL ─────────────────────────────────
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('oiptoken');
+
+  if (!token || !controleerToken(token)) {
+    // Wacht tot DOM geladen is voordat we het scherm vervangen
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', toonBlokkeerscherm);
+    } else {
+      toonBlokkeerscherm();
+    }
+  }
+
+})();
+
 // ═══════════════════════════════════════════════
 // MODEL
 // ═══════════════════════════════════════════════
@@ -1911,10 +2023,13 @@ Zodra de briefing is afgerond en de deelnemer gereed is, stuur je [FASE:1] op ee
     ? { _meta: { expiresAt: new Date(expiryVal + 'T23:59:59').toISOString(), setAt: new Date().toISOString() } }
     : {};
 
+  const execLangVal = document.getElementById('f-execlang')?.value || '';
+
   return {
     ...metaBlock,
     schemaVersion:'1.5', exportedAt:new Date().toISOString(),
     language: lang,
+    executionLanguage: execLangVal || null,
     participant: cur.participant,
     aiScenario:{
       scenarioId:cur.id, scenarioTitle:cur.title, organization:cur.organization,
@@ -2101,6 +2216,14 @@ function handleImport(ev){
       };
 
       isDirty=false; populate(); showTab('scenario'); topbar();
+
+      // Uitvoeringstaal herstellen uit geïmporteerde JSON
+      const execLangSel = document.getElementById('f-execlang');
+      if (execLangSel && obj.executionLanguage) {
+        execLangSel.value = obj.executionLanguage;
+      } else if (execLangSel) {
+        execLangSel.value = '';
+      }
 
       const migMsg = isOld ? t('toast.imported_old') : '';
       toast(`"${cur.title||t('tab.scenario')}" ${t('toast.imported')}${migMsg}`,'ok');
@@ -2326,6 +2449,9 @@ var T = {
     'exp.desc':          'Genereer het configuratiebestand voor de OIP Live Scenario module.',
     'exp.validation':    'Validatie',
     'exp.download':      '↓ Download scenario JSON',
+    'exp.execlang':      'Uitvoeringstaal scenario',
+    'exp.execlang_label':'Taal voor de deelnemer (AI-communicatie)',
+    'exp.execlang_hint': 'De AI voert het scenario uit in deze taal, ongeacht de taal van de JSON-inhoud. Handig voor EVOS-terminals in Duitsland of Spanje.',
     'exp.expiry':        'Vervaldatum (optioneel)',
     'exp.expiry_label':  'Geldig tot en met',
     'exp.expiry_hint':   'Na deze datum weigert de Player het bestand. Laat leeg voor onbeperkte geldigheid.',
@@ -2553,6 +2679,9 @@ var T = {
     'exp.desc':          'Generate the configuration file for the OIP Live Scenario module.',
     'exp.validation':    'Validation',
     'exp.download':      '↓ Download scenario JSON',
+    'exp.execlang':      'Scenario execution language',
+    'exp.execlang_label':'Language for the participant (AI communication)',
+    'exp.execlang_hint': 'The AI will conduct the scenario in this language, regardless of the JSON content language. Useful for EVOS terminals in Germany or Spain.',
     'exp.expiry':        'Expiry date (optional)',
     'exp.expiry_label':  'Valid until',
     'exp.expiry_hint':   'After this date the Player will refuse this file. Leave empty for unlimited validity.',
@@ -2782,8 +2911,30 @@ function applyLang() {
   const expValHdr = document.querySelector('#panel-export .fst');
   if (expValHdr) expValHdr.textContent = t('exp.validation');
   const expFsts = document.querySelectorAll('#panel-export .fst');
-  if (expFsts[1]) expFsts[1].textContent = t('exp.expiry');
-  if (expFsts[2]) expFsts[2].textContent = t('exp.preview');
+  if (expFsts[1]) expFsts[1].textContent = t('exp.execlang');
+  if (expFsts[2]) expFsts[2].textContent = t('exp.expiry');
+  if (expFsts[3]) expFsts[3].textContent = t('exp.preview');
+
+  // Uitvoeringstaal veld labels
+  const expExecLbl = document.getElementById('exp-execlang-label');
+  if (expExecLbl) expExecLbl.textContent = t('exp.execlang_label');
+  const expExecHint = document.getElementById('exp-execlang-hint');
+  if (expExecHint) expExecHint.textContent = t('exp.execlang_hint');
+
+  // Uitvoeringstaal dropdown opties vertalen
+  const execSel = document.getElementById('f-execlang');
+  if (execSel) {
+    const execOpts = [
+      [''    , lang==='en' ? '— Same as UI language —'                 : '— Gelijk aan controller-taal —'],
+      ['nl'  , '🇳🇱 Nederlands'],
+      ['en'  , '🇬🇧 English'],
+      ['de'  , '🇩🇪 Deutsch'],
+      ['es'  , '🇪🇸 Español'],
+      ['fr'  , '🇫🇷 Français'],
+      ['pl'  , '🇵🇱 Polski'],
+    ];
+    [...execSel.options].forEach((opt, i) => { if (execOpts[i]) opt.text = execOpts[i][1]; });
+  }
 
   // Vervaldatum veld labels
   const expLbl = document.getElementById('exp-expiry-label');
